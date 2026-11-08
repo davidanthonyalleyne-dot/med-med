@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <title>Med Med</title>
 <meta name="description" content="Yuki's daily heart meds: who gave each dose and when, plus printable blank sheets.">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
@@ -41,7 +41,8 @@
   --tabbar:rgba(18,18,20,.92); --scrim:rgba(0,0,0,.6); --sheet:#1C1C1E; --sheetwell:#2C2C2E;
   --pimo:#7FA6FF; --dilt:#C39BFF; --furo:#FFAD5C; --digo:#FF7D93; color-scheme:dark}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
+html{-webkit-text-size-adjust:100%;touch-action:pan-x pan-y}
+body,button,a{touch-action:manipulation}
 body{background:var(--bg);color:var(--text);font:17px/1.4 var(--font);-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
 button{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--text);outline-offset:2px}
@@ -396,6 +397,9 @@ function renderPrint(){
 function render(){ renderToday(); renderMonth(); renderPrint(); }
 
 /* ---------- Tabs ---------- */
+/* No pinch or double-tap zoom on iPhone and iPad, in either orientation */
+["gesturestart","gesturechange","gestureend"].forEach(e=>document.addEventListener(e,ev=>ev.preventDefault(),{passive:false}));
+document.addEventListener("touchmove",ev=>{ if(ev.touches && ev.touches.length>1) ev.preventDefault(); },{passive:false});
 const TABS=["today","month","print"];
 function showTab(t){
   if(!TABS.includes(t)) t="today";
