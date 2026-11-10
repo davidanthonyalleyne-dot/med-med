@@ -198,7 +198,7 @@ def main():
                     subscription_info={"endpoint": sub["endpoint"], "keys": sub["keys"]},
                     data=payload,
                     vapid_private_key=private_key,
-                    vapid_claims={"sub": "mailto:alerts@med-med.invalid"},
+                    vapid_claims={"sub": "mailto:alerts@davidanthonyalleyne-dot.github.io"},
                     ttl=3 * 3600,
                 )
                 sent += 1
