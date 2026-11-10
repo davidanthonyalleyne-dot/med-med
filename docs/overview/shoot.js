@@ -12,17 +12,26 @@ const MOCK = fs.readFileSync(path.join(__dirname, "mock-firebase.js"), "utf8");
 const NOW = new Date("2026-11-09T15:40:00-05:00");
 const TYPES = { ".html": "text/html", ".js": "text/javascript", ".png": "image/png", ".svg": "image/svg+xml", ".webmanifest": "application/manifest+json" };
 
+// Made-up household names, so the screenshots never show the real family.
+const NAMES = { Quinn: "Maya", Kai: "Leo", David: "Sam", Chelsey: "Nora", PJ: "Theo" };
+function sampleNames(html) {
+  const real = Object.keys(NAMES);
+  html = html.replace(/const PEOPLE = \[[^\]]*\];/, `const PEOPLE = ${JSON.stringify(real.map((n) => NAMES[n]))};`);
+  return html.replace(/Quinn, Kai, Chelsey and PJ/g, "Maya, Leo, Nora and Theo");
+}
+
 const server = http.createServer((req, res) => {
   const file = path.join(ROOT, decodeURIComponent(req.url.split("?")[0]).replace(/\/$/, "/index.html"));
   if (!file.startsWith(ROOT) || !fs.existsSync(file)) { res.writeHead(404); return res.end(); }
   res.writeHead(200, { "Content-Type": TYPES[path.extname(file)] || "application/octet-stream" });
+  if (file.endsWith("index.html")) return res.end(sampleNames(fs.readFileSync(file, "utf8")));
   fs.createReadStream(file).pipe(res);
 });
 
 // Sample household, a remembered giver and alerts switched on, all fake.
 const SETUP = `
   localStorage.setItem("yukiHousehold", JSON.stringify("K7QM-4TXD-9PWA-2HCN"));
-  localStorage.setItem("yukiLastGiver", JSON.stringify("Chelsey"));
+  localStorage.setItem("yukiLastGiver", JSON.stringify("Nora"));
   localStorage.setItem("yukiAlerts", "true");
   try { Object.defineProperty(Notification, "permission", { get: () => "default" }); } catch (e) {}
   if (navigator.serviceWorker) navigator.serviceWorker.getRegistration = async () =>

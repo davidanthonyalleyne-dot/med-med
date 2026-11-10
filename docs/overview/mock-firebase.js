@@ -1,7 +1,7 @@
 // Stand-in for Firebase used only when taking overview screenshots.
 // It serves sample doses so no real log data ever appears in the document.
 (function () {
-  const P = "PJ", K = "Kai", D = "David", C = "Chelsey", Q = "Quinn";
+  const P = "Theo", K = "Leo", D = "Sam", C = "Nora", Q = "Maya";
   const KEYS = ["early", "late", "afternoon", "evening", "bedtime"];
   const HOURS = [8, 10, 16, 22, 24];
   const sample = {
