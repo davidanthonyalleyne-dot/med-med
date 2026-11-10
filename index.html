@@ -220,7 +220,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
   <div class="snav">
     <button data-tab="today"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today</button>
     <button data-tab="month"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Month</button>
-    <button data-tab="print"><svg viewBox="0 0 24 24"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg>Print</button>
+    <button data-tab="print"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>Settings</button>
   </div>
   <div class="key">
     <span class="label">Meds</span>
@@ -277,12 +277,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
   </section>
 
   <section id="v-print">
-    <div class="top"><div><div class="eyebrow">Blank sheets</div><h1>Print</h1></div></div>
-    <p class="sub">One letter-size page per month with every dose, the med colours and a box to tick and initial.</p>
-    <div class="section">
-      <div class="label">Download</div>
-      <div class="list" id="plist"></div>
-    </div>
+    <div class="top"><div><div class="eyebrow">Med Med</div><h1>Settings</h1></div></div>
     <div class="section">
       <div class="label">Family sync</div>
       <div class="list" id="family"></div>
@@ -293,13 +288,18 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
       <div class="list" id="alerts"></div>
       <p class="sub" id="alertsNote"></p>
     </div>
+    <div class="section">
+      <div class="label">Blank sheets to print</div>
+      <div class="list" id="plist"></div>
+      <p class="sub">One letter-size page per month with every dose and a box to tick and initial.</p>
+    </div>
   </section>
 </main>
 
 <nav class="tabs" aria-label="Sections">
   <button class="tab" data-tab="today"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Today</button>
   <button class="tab" data-tab="month"><svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Month</button>
-  <button class="tab" data-tab="print"><svg viewBox="0 0 24 24"><path d="M7 9V3.5h10V9"/><rect x="3.5" y="9" width="17" height="8" rx="2"/><path d="M7 14h10v6.5H7z"/></svg>Print</button>
+  <button class="tab" data-tab="print"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>Settings</button>
 </nav>
 
 <div class="scrim" id="scrim" hidden>
@@ -419,6 +419,7 @@ function render(){ renderToday(); renderMonth(); renderPrint(); }
 document.addEventListener("touchmove",ev=>{ if(ev.touches && ev.touches.length>1) ev.preventDefault(); },{passive:false});
 const TABS=["today","month","print"];
 function showTab(t){
+  if(t==="settings") t="print";
   if(!TABS.includes(t)) t="today";
   document.body.dataset.tab=t;
   document.querySelectorAll("[data-tab]").forEach(b=>b.setAttribute("aria-current", b.dataset.tab===t?"page":"false"));
@@ -702,7 +703,7 @@ function renderFamily(){
   };
   $("famSwitch").onclick=async()=>{ await alertsOff(true); household=null; store.set("yukiHousehold", null); if(unsub) unsub(); db=null; days=store.get("yukiMeds",{}); render(); renderFamily(); location.hash="today"; };
 }
-$("startLog").onclick=()=>setHousehold(newCode(), "Log started. Share the invite from the Print tab.");
+$("startLog").onclick=()=>setHousehold(newCode(), "Log started. Share the invite from Settings.");
 $("haveCode").onclick=()=>{ $("joinForm").hidden=false; $("joinCode").focus(); };
 $("joinForm").addEventListener("submit", ev=>{
   ev.preventDefault();

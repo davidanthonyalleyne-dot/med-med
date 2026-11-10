@@ -26,7 +26,7 @@ The Firebase config is meant to be public. What protects the log is the rules fi
 
 ## 3. Start the log and invite everyone
 
-Open the app on your phone. The Today screen asks you to **Start Yuki's log**. That creates a random household code. Then go to the **Print** tab and tap **Copy invite** under Family sync, and send the link to Quinn, Kai, Chelsey and PJ. Opening it once connects their phone to the same log.
+Open the app on your phone. The Today screen asks you to **Start Yuki's log**. That creates a random household code. Then go to the **Settings** tab and tap **Share invite** under Family sync, and send the link to Quinn, Kai, Chelsey and PJ. Opening it once connects their phone to the same log.
 
 Anyone who has the invite link can see and edit the log, so keep it in the family. If it ever leaks, tap **Change** under Family sync on each phone and start a new log.
 
@@ -42,10 +42,10 @@ One-time setup: in the repo go to Settings, then Secrets and variables, then Act
 
 | Name | Value |
 |---|---|
-| `HOUSEHOLD_CODE` | the code shown under Family sync on the Print tab |
+| `HOUSEHOLD_CODE` | the code shown under Family sync on the Settings tab |
 | `VAPID_PRIVATE_KEY` | the private push key Claude generated (keep it out of the code) |
 
-Then on each phone open Med Med from the Home Screen icon (on iPhone and iPad alerts only work from there, not from Safari), go to Print, and tap **Turn on** under Missed-dose alerts.
+Then on each phone open Med Med from the Home Screen icon (on iPhone and iPad alerts only work from there, not from Safari), go to Settings, and switch on **Alerts on this device**.
 
 To test it, open the Actions tab, pick Missed-dose alerts and click Run workflow. The log shows what it checked.
 
