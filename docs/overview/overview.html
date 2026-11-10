@@ -23,7 +23,7 @@ body{background:var(--page-bg, #E9E9EC);color:var(--text);font:12.5px/1.45 var(-
   -webkit-print-color-adjust:exact;print-color-adjust:exact}
 @page{size:letter;margin:0}
 
-.page{width:8.5in;height:11in;margin:24px auto;background:var(--bg);padding:.55in .6in .45in;display:flex;flex-direction:column;gap:18px;position:relative;overflow:hidden;
+.page{width:8.5in;height:11in;margin:24px auto;background:var(--bg);padding:.5in .6in .4in;display:flex;flex-direction:column;gap:16px;position:relative;overflow:hidden;
   box-shadow:0 2px 12px rgba(0,0,0,.12)}
 .page + .page{break-before:page}
 
@@ -35,19 +35,19 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
 .intro{margin:0;font-size:13.5px;line-height:1.5;max-width:6.6in}
 .intro b{font-weight:600}
 
-.shots{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:22px}
+.shots{display:grid;grid-template-columns:repeat(3,1.9in);justify-content:space-between;gap:22px}
 .shot{display:flex;flex-direction:column;gap:9px;min-width:0}
 .shot img{width:100%;display:block;border-radius:16px;box-shadow:0 0 0 .5px #D1D1D6,0 6px 18px rgba(0,0,0,.08)}
 .shot b{font-size:14px;font-weight:600}
 .shot p{margin:0;color:var(--muted);font-size:12.5px}
 
 .glance{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:.5px solid var(--rule);border-bottom:.5px solid var(--rule)}
-.glance div{padding:12px 14px 12px 0;display:flex;flex-direction:column;gap:2px}
+.glance div{padding:9px 14px 9px 0;display:flex;flex-direction:column;gap:2px}
 .glance div + div{padding-left:14px;border-left:.5px solid var(--rule)}
 .glance b{font-size:26px;font-weight:600;letter-spacing:-.5px;line-height:1.1}
 .glance span{font-size:12px;color:var(--muted)}
 
-.row2{display:grid;grid-template-columns:1.55in 2.05in minmax(0,1fr);gap:20px;align-items:start}
+.row2{display:grid;grid-template-columns:1.3in 1.75in minmax(0,1fr);gap:20px;align-items:start}
 .row2 .shot img.sheet{border-radius:6px}
 .row2 .shot img.ipad{border-radius:12px}
 
@@ -59,6 +59,14 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
 .meds span{display:inline-flex;align-items:center;gap:6px;font-size:12px}
 .meds i{width:8px;height:8px;border-radius:2px;background:var(--c)}
 
+.tech{border-top:.5px solid var(--rule);padding-top:12px;display:flex;flex-direction:column;gap:6px}
+.tech h2{margin:0;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px}
+.tech h2::before{content:"";width:7px;height:7px;border-radius:50%;background:var(--act);flex:none}
+.tech dl{margin:0;display:grid;grid-template-columns:1.25in minmax(0,1fr);border-top:.5px solid var(--rule)}
+.tech dt,.tech dd{margin:0;padding:4px 0;border-bottom:.5px solid var(--rule);font-size:11.5px;line-height:1.4}
+.tech dt{font-weight:600}
+.tech dd{color:#3A3A3C}
+.tech code{font:11px ui-monospace, "SF Mono", Menlo, monospace}
 .foot{margin-top:auto;display:flex;justify-content:space-between;font-size:11px;color:var(--muted);border-top:.5px solid var(--rule);padding-top:8px}
 
 @media print{
@@ -73,6 +81,8 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
   .glance div:nth-child(3){padding-left:0;border-left:0}
   .glance div:nth-child(n+3){border-top:.5px solid var(--rule)}
   .sections{grid-template-columns:1fr}
+  .tech dl{grid-template-columns:1fr}
+  .tech dt{border-bottom:0;padding-bottom:0}
 }
 </style>
 </head>
@@ -88,7 +98,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <p class="intro">Med Med replaces the paper sheet on the fridge for Yuki's four heart medications. Five doses a day are split across the household, so the app shows <b>what's due, who gave each dose and when</b>, and keeps every phone on the same shared log. If a dose goes unlogged, everyone gets an alert. It still prints the paper sheet for the fridge, and it installs on an iPhone or iPad Home Screen like a normal app.</p>
+  <p class="intro">Med Med replaces the paper sheet on the fridge for Yuki's four heart medications. Five doses a day are split across the household, so the app shows <b>what's due, who gave each dose and when</b>, keeps every phone on one shared log and alerts everyone when a dose is missed. It still prints the paper sheet, and installs on the Home Screen like a normal app.</p>
 
   <div class="shots">
     <div class="shot">
@@ -115,28 +125,6 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     <div><b>~20 min</b><span>after a missed dose, everyone is alerted</span></div>
   </div>
 
-  <div class="foot"><span>Med Med</span><span>Updated November 9, 2026 · 1</span></div>
-</section>
-
-<section class="page">
-  <div class="row2">
-    <div class="shot">
-      <img src="shots/settings.png" alt="Settings with household code, alerts switch and printable sheets">
-      <b>Settings</b>
-      <p>Household code with Copy, the invite link, the alerts switch and blank sheets.</p>
-    </div>
-    <div class="shot">
-      <img class="sheet" src="shots/sheet.png" alt="Printable monthly sheet for November 2026">
-      <b>Printable sheet</b>
-      <p>One letter page per month, matching the paper sheet, with a box to tick and initial.</p>
-    </div>
-    <div class="shot">
-      <img class="ipad" src="shots/ipad.png" alt="iPad landscape layout with sidebar, today and month side by side">
-      <b>iPad, sideways</b>
-      <p>A sidebar with the med key and sync status, with today and the whole month side by side. Phones and portrait keep the tab layout.</p>
-    </div>
-  </div>
-
   <div class="sections">
     <div class="sec">
       <h2>The schedule</h2>
@@ -150,32 +138,62 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
     <div class="sec">
       <h2>Due and missed</h2>
-      <p>A dose shows Log from half an hour before its time. Two hours after, it turns red as Missed, and any blank dose on an earlier day counts as missed. Missed doses can still be logged late.</p>
+      <p>A dose shows Log from half an hour before its time and turns red as Missed two hours after. Missed doses can still be logged late.</p>
     </div>
+  </div>
+
+  <div class="foot"><span>Med Med</span><span>Updated November 9, 2026 · 1</span></div>
+</section>
+
+<section class="page">
+  <div class="row2">
+    <div class="shot">
+      <img src="shots/settings.png" alt="Settings with household code, alerts switch and printable sheets">
+      <b>Settings</b>
+      <p>Household code, invite, alerts switch and blank sheets.</p>
+    </div>
+    <div class="shot">
+      <img class="sheet" src="shots/sheet.png" alt="Printable monthly sheet for November 2026">
+      <b>Printable sheet</b>
+      <p>One letter page per month with a box to tick and initial. Filled-in sheets can be photographed and imported.</p>
+    </div>
+    <div class="shot">
+      <img class="ipad" src="shots/ipad.png" alt="iPad landscape layout with sidebar, today and month side by side">
+      <b>iPad, sideways</b>
+      <p>A sidebar with the med key and sync status, and today beside the whole month. Phones and portrait keep the tabs.</p>
+    </div>
+  </div>
+
+  <div class="sections">
     <div class="sec">
       <h2>Family sync</h2>
-      <p>Everyone shares one log through a private household code. The first phone starts the log and the rest join by opening the invite link or typing the code. A dose logged on one phone shows on the others within seconds.</p>
+      <p>One log shared through a private household code. Others join with the invite link or the code, and a dose logged on one phone shows on the rest within seconds.</p>
     </div>
     <div class="sec">
       <h2>Missed-dose alerts</h2>
-      <p>About 20 minutes after an unlogged dose, every phone with alerts on gets one notification, and tapping it opens Today. On iPhone and iPad alerts work from the Home Screen icon. Each device turns them on with the switch in Settings.</p>
+      <p>About 20 minutes after an unlogged dose, every phone with alerts on gets one notification. On iPhone and iPad they work from the Home Screen icon, switched on in Settings.</p>
     </div>
     <div class="sec">
       <h2>Privacy and security</h2>
-      <p>No accounts or passwords. The log can only be read or changed with the household code, and database rules limit what can be written. Anyone holding the invite link can edit the log, so it stays in the family. If it leaks, Change starts a new code.</p>
-    </div>
-    <div class="sec">
-      <h2>How it runs</h2>
-      <p>A single web page on GitHub Pages, installable to the Home Screen with the capsule and paw icon. The log lives in Firebase's free tier in Toronto, and a free GitHub job checks for missed doses every 15 minutes. It follows the device's dark mode and ignores pinch and double-tap zoom.</p>
+      <p>No accounts or passwords. The log can only be read or changed with the household code, so the invite stays in the family. If it leaks, Change starts a new code.</p>
     </div>
     <div class="sec">
       <h2>Known limits</h2>
-      <p>Alerts can arrive up to about 45 minutes after a dose was due, because GitHub's scheduler isn't exact. Screen rotation has to be locked with the iPad's own Rotation Lock. Changing a dose time means editing the schedule in the app and in the alert checker.</p>
+      <p>Alerts can arrive up to about 45 minutes late because GitHub's scheduler isn't exact. Rotation is locked with the iPad's own Rotation Lock. Pinch and double-tap zoom are off.</p>
     </div>
-    <div class="sec">
-      <h2>Paper sheets</h2>
-      <p>Settings offers last month, this month and next month as PDFs with alternating black and white time bands. Past paper sheets can be photographed and imported into the log, with each dose at its scheduled time.</p>
-    </div>
+  </div>
+
+  <div class="tech">
+    <h2>Technical setup</h2>
+    <dl>
+      <dt>Hosting</dt><dd>GitHub Pages, public <code>med-med</code> repo: <code>index.html</code>, web manifest and icons, <code>sw.js</code> for notifications.</dd>
+      <dt>Shared log</dt><dd>Firebase Cloud Firestore, free Spark plan, Toronto region. <code>households/&lt;code&gt;/days</code> holds one document per day; <code>subs</code> and <code>alerts</code> serve the alerts.</dd>
+      <dt>Sign-in and rules</dt><dd>Firebase anonymous sign-in. <code>firestore.rules</code> limits access to household paths and checks every document.</dd>
+      <dt>Alert checker</dt><dd>GitHub Actions, every 15 minutes: <code>scripts/check_missed.py</code> reads Firestore over REST and sends Web Push (<code>pywebpush</code>, VAPID).</dd>
+      <dt>Secrets</dt><dd><code>HOUSEHOLD_CODE</code> and <code>VAPID_PRIVATE_KEY</code> in GitHub secrets; <code>firebase-config.js</code> is public by design.</dd>
+      <dt>Libraries</dt><dd>Firebase JS SDK 10.12.2, jsPDF 2.5.1 for the sheets. No build step.</dd>
+      <dt>This document</dt><dd><code>docs/overview</code>, regenerated with Playwright from sample data.</dd>
+    </dl>
   </div>
 
   <div class="foot"><span>Med Med</span><span>Updated November 9, 2026 · 2</span></div>
