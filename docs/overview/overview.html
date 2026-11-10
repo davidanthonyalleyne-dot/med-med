@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Med Med: what the app does</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+  /* Two US Letter pages in the app's own look: white, near-black, the four medicine colours. */
+  :root { --text: #1C1C1E; --muted: #6C6C70; --rule: #E6E6E9; --well: #F2F2F4; --ok: #2E9E5B; --bad: #D33A2C;
+    --pimo: #2459C9; --dilt: #7B3CC0; --furo: #B85C00; --digo: #C0243F;
+    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "Helvetica Neue", Helvetica, Arial, sans-serif; }
+  @page { size: letter; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: #FFFFFF; color: var(--text); font-family: var(--font); -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .page { width: 8.5in; height: 11in; padding: 0.6in 0.65in 0.5in; display: flex; flex-direction: column; gap: 20px; break-after: page; overflow: hidden; background: #FFFFFF; }
+  .page:last-child { break-after: auto; }
+  @media screen { body { background: var(--well); padding: 24px 0; } .page { margin: 0 auto 24px; box-shadow: 0 1px 3px rgba(0,0,0,.08), 0 8px 24px rgba(0,0,0,.06); }
+    @media (max-width: 860px) { body { padding: 0; } .page { width: 100%; height: auto; padding: 28px 16px; margin: 0 0 12px; } .shots, .stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; } .cols { grid-template-columns: 1fr !important; } } }
+  header { display: flex; align-items: center; gap: 16px; }
+  header img { width: 58px; height: 58px; border-radius: 14px; box-shadow: 0 0 0 1px var(--rule); }
+  h1 { margin: 0; font-size: 34px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.05; }
+  .lede { margin: 3px 0 0; font-size: 15px; color: var(--muted); }
+  .intro { margin: 0; font-size: 14px; line-height: 1.5; }
+  .intro b { font-weight: 600; }
+  .meds { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 12.5px; }
+  .meds span { display: inline-flex; align-items: center; gap: 6px; }
+  .meds i { width: 9px; height: 9px; border-radius: 2px; display: inline-block; }
+  .shots { display: grid; gap: 18px; }
+  figure { margin: 0; display: flex; flex-direction: column; gap: 8px; }
+  figure img { width: 100%; border-radius: 18px; box-shadow: 0 0 0 1px var(--rule), 0 4px 14px rgba(0,0,0,.06); display: block; }
+  figcaption { font-size: 11.5px; line-height: 1.4; color: var(--muted); }
+  figcaption b { display: block; color: var(--text); font-weight: 600; font-size: 12.5px; }
+  .label { margin: 0 0 8px; font-size: 11px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+  .stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .stats > div { display: flex; flex-direction: column; gap: 4px; padding: 0 14px; }
+  .stats > div:first-child { padding-left: 0; }
+  .stats > div + div { border-left: 1px solid var(--rule); }
+  .stats .v { font-size: 26px; font-weight: 600; letter-spacing: -0.01em; }
+  .stats .u { font-size: 11.5px; line-height: 1.35; color: var(--muted); }
+  .cols { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 30px; row-gap: 14px; }
+  section h2 { margin: 0 0 4px; font-size: 15px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+  section h2::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ok); flex-shrink: 0; }
+  section p { margin: 0; font-size: 12.5px; line-height: 1.5; }
+  .rule { border-top: 1px solid var(--rule); }
+  footer { margin-top: auto; padding-top: 10px; border-top: 1px solid var(--rule); display: flex; justify-content: space-between; font-size: 10.5px; color: var(--muted); }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <img src="icon.svg" alt="">
+    <div>
+      <h1>Med Med</h1>
+      <p class="lede">Yuki's daily heart medicine, logged by the whole family.</p>
+    </div>
+  </header>
+
+  <p class="intro">Yuki takes heart medicine five times a day. Med Med shows <b>what's due next</b>, lets whoever gives a dose log it with two taps, and keeps <b>everyone's phone on the same log</b>, so nobody doubles a dose or misses one. The month view shows every dose at a glance, and blank sheets print for the fridge.</p>
+
+  <div class="meds"><span><i style="background: var(--pimo)"></i>Pimobendan</span><span><i style="background: var(--dilt)"></i>Diltiazem</span><span><i style="background: var(--furo)"></i>Furosemide</span><span><i style="background: var(--digo)"></i>Digoxin</span></div>
+
+  <div class="shots" style="grid-template-columns: repeat(3, minmax(0, 1fr))">
+    <figure><img src="shots/today.png" alt="The Today screen"><figcaption><b>Today</b>Five doses with their medicines, who gave each one and when, and what's coming up.</figcaption></figure>
+    <figure><img src="shots/log.png" alt="Logging a dose"><figcaption><b>Log a dose</b>Tap a dose, confirm who's giving it, done. The last person to give one is picked for you.</figcaption></figure>
+    <figure><img src="shots/month.png" alt="The Month screen"><figcaption><b>Month</b>Every day and dose on one screen, with initials for who gave it and a red ring for a miss.</figcaption></figure>
+  </div>
+
+  <div class="rule"></div>
+  <div>
+    <p class="label">At a glance</p>
+    <div class="stats">
+      <div><span class="v">5</span><span class="u">doses a day, 8 am to midnight</span></div>
+      <div><span class="v">4</span><span class="u">medicines, each with its own colour</span></div>
+      <div><span class="v">2 taps</span><span class="u">to log a dose</span></div>
+      <div><span class="v">20 min</span><span class="u">after a missed dose, every phone with alerts on hears about it</span></div>
+    </div>
+  </div>
+
+  <footer><span>Med Med · what the app does · Names and doses in the screenshots are made up</span><span>Page 1 of 2</span></footer>
+</div>
+
+<div class="page">
+  <div class="cols" style="grid-template-columns: 1fr 1.3fr; align-items: start">
+    <figure><img src="shots/print.png" alt="Settings and printable sheets"><figcaption><b>Settings</b>Family sync, alerts, and blank sheets to print for last month, this month and next.</figcaption></figure>
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <section><h2>One log for the family</h2><p>Starting the log makes a private household code. Share the invite link once and every phone that opens it sees and updates the same log, live. If a link ever leaks, start a new log and re-invite.</p></section>
+      <section><h2>Missed-dose alerts</h2><p>If a dose isn't logged about 20 minutes after it's due, every phone that turned alerts on gets a notification. A check runs every 15 minutes, so an alert can take up to about half an hour.</p></section>
+      <section><h2>Printable sheets</h2><p>One Letter page per month, with every dose, a box to tick and room for initials, for days when a paper sheet on the fridge is easier.</p></section>
+      <section><h2>Matches the paper routine</h2><p>The midnight dose counts toward the day before, the same way the paper sheet does, so the app and the fridge never disagree.</p></section>
+      <section><h2>Like an app</h2><p>Add it to the Home Screen and it opens full screen with its own icon, in light or dark mode.</p></section>
+    </div>
+  </div>
+
+  <div class="rule"></div>
+
+  <div class="cols">
+    <section><h2>Private</h2><p>The log holds only dose times and first names. The database only lets in phones that have the household code.</p></section>
+    <section><h2>How it runs</h2><p>A single web page on GitHub Pages. Family sync uses Firebase's free tier, and the missed-dose check runs as a free GitHub Action. Without sync, each phone keeps its own log.</p></section>
+  </div>
+
+  <footer><span>Updated November 9, 2026</span><span>Page 2 of 2</span></footer>
+</div>
+
+</body>
+</html>
