@@ -162,6 +162,18 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .field{font:inherit;font-size:17px;width:100%;min-height:48px;padding:0 14px;border-radius:12px;border:1px solid var(--rule);background:var(--bg);color:var(--text);text-transform:uppercase}
 .lrow .plain{all:unset;cursor:pointer;font-size:15px;font-weight:600;color:var(--text);min-height:44px;display:inline-flex;align-items:center}
 .lrow .plain:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.lrow .copy{all:unset;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-size:15px;font-weight:600;color:var(--text);min-height:44px;padding:0 4px}
+.lrow .copy svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.lrow .copy:focus-visible{outline:2px solid var(--text);outline-offset:2px;border-radius:8px}
+.lrow .codeval{font-size:17px;letter-spacing:.04em;color:var(--text)}
+.switch{all:unset;cursor:pointer;flex:none;position:relative;width:51px;height:31px;border-radius:16px;background:var(--ring);transition:background .2s}
+.switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#FFFFFF;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:transform .2s}
+.switch[aria-checked="true"]{background:var(--ok)}
+.switch[aria-checked="true"]::after{transform:translateX(20px)}
+.switch[disabled]{opacity:.45;cursor:default}
+.switch[aria-busy="true"]{opacity:.7}
+.switch:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+@media (prefers-reduced-motion: reduce){.switch,.switch::after{transition:none}}
 [hidden]{display:none!important}
 
 /* Views: which section shows is driven by body[data-tab] */
@@ -606,25 +618,21 @@ async function renderAlerts(){
   const sec=$("alertsSection"), box=$("alerts"), note=$("alertsNote");
   sec.hidden = !(syncReady && household);
   if(sec.hidden) return;
-  note.textContent="If a dose isn't logged about 20 minutes after it's due, every phone with alerts on gets a notification. It can arrive up to half an hour late.";
-  if(isIOS && !isStandalone){
-    box.innerHTML=`<div class="lrow"><span>Add Med Med to your Home Screen first<br><span class="at">In Safari tap Share, then Add to Home Screen, then open it from there</span></span></div>`;
-    return;
-  }
-  if(!pushSupported){
-    box.innerHTML=`<div class="lrow"><span>This browser can't show alerts</span></div>`;
-    return;
-  }
-  if(Notification.permission==="denied"){
-    box.innerHTML=`<div class="lrow"><span>Alerts are blocked<br><span class="at">${isIOS?"Turn them on in Settings, Notifications, Med Med":"Allow notifications for this site in your browser settings"}</span></span></div>`;
-    return;
-  }
-  const on = !!(await currentSub()) && store.get("yukiAlerts", false);
-  box.innerHTML = on
-    ? `<div class="lrow"><span>On for this ${isIOS&&/iPad/.test(navigator.userAgent)?"iPad":"device"}</span><button class="plain" id="alertsOff">Turn off</button></div>`
-    : `<div class="lrow"><span>Off on this device</span><button class="go" id="alertsOn">Turn on</button></div>`;
-  if(on) $("alertsOff").onclick=()=>alertsOff(false);
-  else $("alertsOn").onclick=alertsOn;
+  note.textContent="Notifies everyone if a dose isn't logged within 20 minutes.";
+  let reason="", on=false;
+  if(isIOS && !isStandalone) reason="Open Med Med from your Home Screen to use alerts";
+  else if(!pushSupported) reason="This browser can't show alerts";
+  else if(Notification.permission==="denied") reason=isIOS?"Allow in Settings, Notifications, Med Med":"Allow notifications in browser settings";
+  else on = !!(await currentSub()) && store.get("yukiAlerts", false);
+  box.innerHTML=`<div class="lrow"><label for="alertsSwitch" style="display:flex;flex-direction:column">Alerts on this device${reason?`<span class="at">${reason}</span>`:""}</label>
+    <button class="switch" id="alertsSwitch" role="switch" aria-checked="${on}" ${reason?"disabled":""}></button></div>`;
+  const sw=$("alertsSwitch");
+  sw.onclick=async()=>{
+    if(sw.getAttribute("aria-busy")==="true") return;
+    const want = sw.getAttribute("aria-checked")!=="true";
+    sw.setAttribute("aria-checked", want); sw.setAttribute("aria-busy","true");
+    if(want) await alertsOn(); else await alertsOff(false);
+  };
 }
 async function alertsOn(){
   if(!fs || !household){ toast("Connect to Yuki's log first"); return; }
@@ -669,10 +677,22 @@ function renderFamily(){
     $("famStart").onclick=()=>{ location.hash="today"; };
     return;
   }
-  f.innerHTML=`<div class="lrow"><span>Household code<br><span class="at mono">${household}</span></span><button class="go" id="famCopy">Copy invite</button></div>
+  f.innerHTML=`<div class="lrow"><span>Household code<br><span class="mono codeval">${household}</span></span>
+      <button class="copy" id="famCode" aria-label="Copy household code"><svg viewBox="0 0 24 24"><rect x="8.5" y="8.5" width="12" height="12" rx="2.5"/><path d="M15.5 8.5V6a2.5 2.5 0 0 0-2.5-2.5H6A2.5 2.5 0 0 0 3.5 6v7A2.5 2.5 0 0 0 6 15.5h2.5"/></svg><span id="famCodeLbl">Copy</span></button></div>
+    <div class="lrow"><span>Invite link</span><button class="go" id="famCopy">Share invite</button></div>
     <div class="lrow"><span>Use a different code</span><button class="plain" id="famSwitch">Change</button></div>`;
   renderAlerts();
-  note.textContent="Send the invite link to Quinn, Kai, Chelsey and PJ. Opening it once connects their phone to the same log.";
+  note.textContent="Share the invite with Quinn, Kai, Chelsey and PJ, or they can enter the code.";
+  $("famCode").onclick=async()=>{
+    const lbl=$("famCodeLbl");
+    try{ await navigator.clipboard.writeText(household); }
+    catch(e){
+      const t=document.createElement("textarea"); t.value=household; t.setAttribute("readonly",""); t.style.position="fixed"; t.style.opacity="0";
+      document.body.appendChild(t); t.select(); t.setSelectionRange(0,99); let ok=false; try{ ok=document.execCommand("copy"); }catch(_){} t.remove();
+      if(!ok){ toast(household); return; }
+    }
+    lbl.textContent="Copied"; toast("Household code copied"); setTimeout(()=>{ if(lbl.isConnected) lbl.textContent="Copy"; },2000);
+  };
   $("famCopy").onclick=async()=>{
     const link=inviteLink();
     try{
