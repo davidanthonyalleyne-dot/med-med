@@ -177,6 +177,7 @@ def main():
     subs = [plain({"mapValue": d}) | {"_name": d["name"]} for d in store.list("subs")]
     log(f"{len(missed)} missed dose(s), {len(subs)} phone(s) signed up for alerts")
 
+    failed = []
     for date, (key, name, time_label, _, meds), due in missed:
         payload = json.dumps({
             "title": f"Yuki's {name} dose isn't logged",
@@ -210,6 +211,11 @@ def main():
                 else:
                     log(f"Push failed ({code}): {e}")
         log(f"{date} {key}: alerted {sent} phone(s)")
+        if subs and not sent:
+            failed.append(f"{date} {key}")
+    if failed:
+        # Fail the run so GitHub emails the repo owner instead of failing silently.
+        raise SystemExit(f"No phone received the alert for {', '.join(failed)}")
 
 
 if __name__ == "__main__":

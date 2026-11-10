@@ -591,6 +591,7 @@ async function connect(){
       await firebase.auth().signInAnonymously();
     }
     db = makeDb(household);
+    resyncAlerts();
     setSync("Loading");
     days = {}; render(); subscribe();
     setTimeout(()=>{ if($("sync").textContent==="Loading") setSync("Slow connection"); },10000);
@@ -634,6 +635,16 @@ async function renderAlerts(){
     sw.setAttribute("aria-checked", want); sw.setAttribute("aria-busy","true");
     if(want) await alertsOn(); else await alertsOff(false);
   };
+}
+// iPhones can quietly replace a device's push address. Each time the app opens with alerts
+// on, save the current address again so the checker never holds a stale one.
+async function resyncAlerts(){
+  try{
+    if(!store.get("yukiAlerts", false)) return;
+    const sub = await currentSub(); if(!sub) return;
+    const j = sub.toJSON();
+    await subsRef().doc(await subId(j.endpoint)).set({endpoint:j.endpoint, keys:{p256dh:j.keys.p256dh, auth:j.keys.auth}, created:new Date().toISOString()});
+  }catch(e){}
 }
 async function alertsOn(){
   if(!fs || !household){ toast("Connect to Yuki's log first"); return; }
