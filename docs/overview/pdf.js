@@ -1,14 +1,14 @@
-// Prints overview.html to overview.pdf (two Letter pages) and a PNG of each page.
-//   node docs/overview/pdf.js
-const { chromium } = require("playwright");
+// Prints overview.html to overview.pdf. Run from the repo root: node docs/overview/pdf.js
 const path = require("path");
+const { chromium } = require("playwright");
+
 (async () => {
-  const b = await chromium.launch();
-  const p = await b.newPage({ viewport: { width: 816, height: 1056 }, deviceScaleFactor: 2 });
-  await p.goto("file://" + path.join(__dirname, "overview.html"));
-  await p.waitForTimeout(500);
-  await p.emulateMedia({ media: "print" });
-  await p.pdf({ path: path.join(__dirname, "overview.pdf"), format: "Letter", printBackground: true, margin: { top: 0, right: 0, bottom: 0, left: 0 } });
-  await b.close();
-  console.log("wrote overview.pdf");
+  const browser = await chromium.launch();
+  const page = await browser.newPage();
+  await page.goto("file://" + path.join(__dirname, "overview.html"));
+  await page.emulateMedia({ media: "print" });
+  await page.waitForLoadState("networkidle");
+  await page.pdf({ path: path.join(__dirname, "overview.pdf"), format: "Letter", printBackground: true, margin: { top: 0, right: 0, bottom: 0, left: 0 } });
+  await browser.close();
+  console.log("Saved overview.pdf");
 })();

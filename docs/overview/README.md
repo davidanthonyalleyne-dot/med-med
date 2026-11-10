@@ -1,11 +1,18 @@
-# Overview document
+# Med Med overview
 
-`overview.html` is a two-page description of what Med Med does, with screenshots, printed to `overview.pdf`.
-Update it whenever a feature is added, changed or removed.
+A two-page overview of what Med Med does, with screenshots, in the app's own style.
 
-1. `node docs/overview/shoot.js`: serves the app locally with family sync off, a made-up log and made-up names
-   (no real names or doses appear), and saves the screenshots in `shots/`.
-2. Edit `overview.html`: captions, sections, the at-a-glance figures and the "Updated" date.
-3. `node docs/overview/pdf.js`: writes `overview.pdf`. It must stay at two Letter pages.
+- `overview.html` is the document, `overview.pdf` the printable copy.
+- `shots/` holds the screenshots. They use sample doses from `mock-firebase.js` and a fake household code, never the real log.
+- Published artifact: https://claude.ai/artifact/F6Q3d5Up2F9hxuaDKKi44U
 
-Published copy (republish to the same link after each update): https://claude.ai/artifact/RTzgBJ4xvh8htnfGCqY2SM
+## Regenerate
+
+From the repo root, with Playwright installed and `pdftoppm` available:
+
+```sh
+node docs/overview/shoot.js   # retakes every screenshot with the clock set to Nov 9, 2026, 3:40 PM
+node docs/overview/pdf.js     # prints overview.html to overview.pdf
+```
+
+Update the captions and the "Updated" date in `overview.html` whenever the app changes in a way users would notice.
