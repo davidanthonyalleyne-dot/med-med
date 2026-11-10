@@ -34,6 +34,23 @@ Anyone who has the invite link can see and edit the log, so keep it in the famil
 
 On iPhone open the link in Safari, tap Share, then **Add to Home Screen**. It gets the capsule and paw icon and opens full screen like an app. On Android use Chrome's menu and **Add to Home screen**.
 
+## Missed-dose alerts
+
+If a dose isn't logged about 20 minutes after it's due, every phone that turned alerts on gets a notification. A free GitHub Action (`.github/workflows/missed-dose-alerts.yml`) checks the log every 15 minutes. GitHub's scheduler isn't exact, so an alert can land up to about half an hour after the miss, and once in a while a run is skipped.
+
+One-time setup: in the repo go to Settings, then Secrets and variables, then Actions, and add two repository secrets.
+
+| Name | Value |
+|---|---|
+| `HOUSEHOLD_CODE` | the code shown under Family sync on the Print tab |
+| `VAPID_PRIVATE_KEY` | the private push key Claude generated (keep it out of the code) |
+
+Then on each phone open Med Med from the Home Screen icon (on iPhone and iPad alerts only work from there, not from Safari), go to Print, and tap **Turn on** under Missed-dose alerts.
+
+To test it, open the Actions tab, pick Missed-dose alerts and click Run workflow. The log shows what it checked.
+
+If you change the dose times in `index.html`, change `SLOTS` in `scripts/check_missed.py` to match.
+
 ## Changing the meds
 
 The schedule lives near the top of the script in `index.html`, in the `SLOTS` list. Edit a time, name or dose there and commit. The app and the printable PDF both read from it.
@@ -44,3 +61,5 @@ The schedule lives near the top of the script in `index.html`, in the `SLOTS` li
 - `firebase-config.js` holds your Firebase keys.
 - `firestore.rules` is the database security rules to paste into Firebase.
 - `manifest.webmanifest` and `icons/` make it installable with the Med Med icon.
+- `sw.js` shows the alerts on each phone.
+- `scripts/check_missed.py` and `.github/workflows/missed-dose-alerts.yml` are the alert checker.

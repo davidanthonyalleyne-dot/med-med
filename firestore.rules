@@ -3,13 +3,33 @@ service cloud.firestore {
   match /databases/{database}/documents {
     // Each family's log lives under a random 19-character household code.
     // Only signed-in app users can read or write, and only inside a household path.
+
+    // One document per day of doses.
     match /households/{household}/days/{day} {
       allow read: if request.auth != null && household.size() == 19;
       allow write: if request.auth != null
                    && household.size() == 19
                    && day.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}$')
-                   && request.resource.data.keys().hasOnly(['date', 'month', 'slots'])
-                   && request.resource.data.size() < 5000;
+                   && request.resource.data.keys().hasOnly(['date', 'month', 'slots']);
+    }
+
+    // Phones that turned on missed-dose alerts.
+    match /households/{household}/subs/{sub} {
+      allow read, delete: if request.auth != null && household.size() == 19;
+      allow create, update: if request.auth != null
+                            && household.size() == 19
+                            && sub.matches('^[0-9a-f]{40}$')
+                            && request.resource.data.keys().hasOnly(['endpoint', 'keys', 'created'])
+                            && request.resource.data.endpoint.matches('^https://.{10,600}$');
+    }
+
+    // One marker per alert sent, so a missed dose is only announced once.
+    match /households/{household}/alerts/{alert} {
+      allow read: if request.auth != null && household.size() == 19;
+      allow create: if request.auth != null
+                    && household.size() == 19
+                    && alert.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_[a-z]+$')
+                    && request.resource.data.keys().hasOnly(['at']);
     }
   }
 }

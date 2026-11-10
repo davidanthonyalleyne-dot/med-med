@@ -276,6 +276,11 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
       <div class="list" id="family"></div>
       <p class="sub" id="familyNote"></p>
     </div>
+    <div class="section" id="alertsSection" hidden>
+      <div class="label">Missed-dose alerts</div>
+      <div class="list" id="alerts"></div>
+      <p class="sub" id="alertsNote"></p>
+    </div>
   </section>
 </main>
 
@@ -584,8 +589,74 @@ function setHousehold(code, msg){
   $("setup").hidden=true; connect(); if(msg) toast(msg);
 }
 function inviteLink(){ return `${location.origin}${location.pathname}#join=${household}`; }
+/* ---------- Missed-dose alerts (Web Push) ---------- */
+const VAPID_PUBLIC = "BJcfSGrWLc41Sl3dB2QFzWKLceBMdahq1cNhPoDuuhmTO7B_ZInAxzuuWG-5ZNo6NcPyS__ZcJ4sGJpaQsz5k-Q";
+const isIOS = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform==="MacIntel" && navigator.maxTouchPoints>1);
+const isStandalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone===true;
+const pushSupported = "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+function b64ToBytes(s){ const p="=".repeat((4-s.length%4)%4); const b=atob((s+p).replace(/-/g,"+").replace(/_/g,"/")); return Uint8Array.from(b,c=>c.charCodeAt(0)); }
+async function subId(endpoint){ const h=await crypto.subtle.digest("SHA-256", new TextEncoder().encode(endpoint)); return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("").slice(0,40); }
+function subsRef(){ return fs.collection("households").doc(household).collection("subs"); }
+async function currentSub(){
+  if(!pushSupported) return null;
+  const reg=await navigator.serviceWorker.getRegistration();
+  return reg ? reg.pushManager.getSubscription() : null;
+}
+async function renderAlerts(){
+  const sec=$("alertsSection"), box=$("alerts"), note=$("alertsNote");
+  sec.hidden = !(syncReady && household);
+  if(sec.hidden) return;
+  note.textContent="If a dose isn't logged about 20 minutes after it's due, every phone with alerts on gets a notification. It can arrive up to half an hour late.";
+  if(isIOS && !isStandalone){
+    box.innerHTML=`<div class="lrow"><span>Add Med Med to your Home Screen first<br><span class="at">In Safari tap Share, then Add to Home Screen, then open it from there</span></span></div>`;
+    return;
+  }
+  if(!pushSupported){
+    box.innerHTML=`<div class="lrow"><span>This browser can't show alerts</span></div>`;
+    return;
+  }
+  if(Notification.permission==="denied"){
+    box.innerHTML=`<div class="lrow"><span>Alerts are blocked<br><span class="at">${isIOS?"Turn them on in Settings, Notifications, Med Med":"Allow notifications for this site in your browser settings"}</span></span></div>`;
+    return;
+  }
+  const on = !!(await currentSub()) && store.get("yukiAlerts", false);
+  box.innerHTML = on
+    ? `<div class="lrow"><span>On for this ${isIOS&&/iPad/.test(navigator.userAgent)?"iPad":"device"}</span><button class="plain" id="alertsOff">Turn off</button></div>`
+    : `<div class="lrow"><span>Off on this device</span><button class="go" id="alertsOn">Turn on</button></div>`;
+  if(on) $("alertsOff").onclick=()=>alertsOff(false);
+  else $("alertsOn").onclick=alertsOn;
+}
+async function alertsOn(){
+  if(!fs || !household){ toast("Connect to Yuki's log first"); return; }
+  try{
+    const perm = await Notification.requestPermission();
+    if(perm!=="granted"){ renderAlerts(); toast("Alerts weren't allowed on this device"); return; }
+    const reg = await navigator.serviceWorker.register("sw.js");
+    await navigator.serviceWorker.ready;
+    let sub = await reg.pushManager.getSubscription();
+    if(!sub) sub = await reg.pushManager.subscribe({userVisibleOnly:true, applicationServerKey:b64ToBytes(VAPID_PUBLIC)});
+    const j = sub.toJSON();
+    await subsRef().doc(await subId(j.endpoint)).set({endpoint:j.endpoint, keys:{p256dh:j.keys.p256dh, auth:j.keys.auth}, created:new Date().toISOString()});
+    store.set("yukiAlerts", true);
+    toast("Alerts on for this device");
+  }catch(e){ toast("Couldn't turn alerts on. Check your connection and try again."); }
+  renderAlerts();
+}
+async function alertsOff(quiet){
+  try{
+    const sub = await currentSub();
+    if(sub){
+      if(fs && household) await subsRef().doc(await subId(sub.endpoint)).delete().catch(()=>{});
+      await sub.unsubscribe();
+    }
+  }catch(e){}
+  store.set("yukiAlerts", false);
+  if(!quiet){ toast("Alerts off for this device"); renderAlerts(); }
+}
+
 function renderFamily(){
   $("setup").hidden = !(syncReady && !household);
+  $("alertsSection").hidden = true;
   const f=$("family"), note=$("familyNote");
   if(!syncReady){
     f.innerHTML=`<div class="lrow"><span>This device only</span></div>`;
@@ -600,6 +671,7 @@ function renderFamily(){
   }
   f.innerHTML=`<div class="lrow"><span>Household code<br><span class="at mono">${household}</span></span><button class="go" id="famCopy">Copy invite</button></div>
     <div class="lrow"><span>Use a different code</span><button class="plain" id="famSwitch">Change</button></div>`;
+  renderAlerts();
   note.textContent="Send the invite link to Quinn, Kai, Chelsey and PJ. Opening it once connects their phone to the same log.";
   $("famCopy").onclick=async()=>{
     const link=inviteLink();
@@ -608,7 +680,7 @@ function renderFamily(){
       await navigator.clipboard.writeText(link); toast("Invite link copied");
     }catch(e){ if(e && e.name!=="AbortError") toast(link); }
   };
-  $("famSwitch").onclick=()=>{ household=null; store.set("yukiHousehold", null); if(unsub) unsub(); db=null; days=store.get("yukiMeds",{}); render(); renderFamily(); location.hash="today"; };
+  $("famSwitch").onclick=async()=>{ await alertsOff(true); household=null; store.set("yukiHousehold", null); if(unsub) unsub(); db=null; days=store.get("yukiMeds",{}); render(); renderFamily(); location.hash="today"; };
 }
 $("startLog").onclick=()=>setHousehold(newCode(), "Log started. Share the invite from the Print tab.");
 $("haveCode").onclick=()=>{ $("joinForm").hidden=false; $("joinCode").focus(); };
