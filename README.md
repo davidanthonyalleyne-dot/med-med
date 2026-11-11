@@ -36,7 +36,7 @@ On iPhone open the link in Safari, tap Share, then **Add to Home Screen**. It ge
 
 ## Missed-dose alerts
 
-If a dose isn't logged about 20 minutes after it's due, every phone that turned alerts on gets a notification. A free GitHub Action (`.github/workflows/missed-dose-alerts.yml`) checks the log every 15 minutes. GitHub's scheduler isn't exact, so an alert can land up to about half an hour after the miss, and once in a while a run is skipped.
+If a dose isn't logged about 20 minutes after it's due, every phone that turned alerts on gets a notification. A free GitHub Action (`.github/workflows/missed-dose-alerts.yml`) checks the log. A free cron-job.org job named "Med Med alerts" starts it every 10 minutes through GitHub's API, using a fine-grained token that can only start Actions on this repo. GitHub's own 15-minute schedule stays on as a backup, but GitHub often delays it by hours, so the cron-job.org job is what keeps alerts on time.
 
 One-time setup: in the repo go to Settings, then Secrets and variables, then Actions, and add two repository secrets.
 

@@ -142,7 +142,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med</span><span>Updated November 9, 2026 · 1</span></div>
+  <div class="foot"><span>Med Med</span><span>Updated November 10, 2026 · 1</span></div>
 </section>
 
 <section class="page">
@@ -179,7 +179,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
     <div class="sec">
       <h2>Known limits</h2>
-      <p>Alerts can arrive up to about 45 minutes late because GitHub's scheduler isn't exact. Rotation is locked with the iPad's own Rotation Lock. Pinch and double-tap zoom are off.</p>
+      <p>Alerts land 20 to 30 minutes after a missed dose, since the log is checked every 10 minutes. Rotation is locked with the iPad's own Rotation Lock. Pinch and double-tap zoom are off.</p>
     </div>
   </div>
 
@@ -189,14 +189,14 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
       <dt>Hosting</dt><dd>GitHub Pages, public <code>med-med</code> repo: <code>index.html</code>, web manifest and icons, <code>sw.js</code> for notifications.</dd>
       <dt>Shared log</dt><dd>Firebase Cloud Firestore, free Spark plan, Toronto region. <code>households/&lt;code&gt;/days</code> holds one document per day; <code>subs</code> and <code>alerts</code> serve the alerts.</dd>
       <dt>Sign-in and rules</dt><dd>Firebase anonymous sign-in. <code>firestore.rules</code> limits access to household paths and checks every document.</dd>
-      <dt>Alert checker</dt><dd>GitHub Actions, every 15 minutes: <code>scripts/check_missed.py</code> reads Firestore over REST and sends Web Push (<code>pywebpush</code>, VAPID).</dd>
-      <dt>Secrets</dt><dd><code>HOUSEHOLD_CODE</code> and <code>VAPID_PRIVATE_KEY</code> in GitHub secrets; <code>firebase-config.js</code> is public by design.</dd>
+      <dt>Alert checker</dt><dd>cron-job.org starts a GitHub Actions run every 10 minutes: <code>scripts/check_missed.py</code> reads Firestore over REST and sends Web Push (<code>pywebpush</code>, VAPID).</dd>
+      <dt>Secrets</dt><dd><code>HOUSEHOLD_CODE</code> and <code>VAPID_PRIVATE_KEY</code> in GitHub secrets; a GitHub token limited to starting Actions on this repo lives in cron-job.org.</dd>
       <dt>Libraries</dt><dd>Firebase JS SDK 10.12.2, jsPDF 2.5.1 for the sheets. No build step.</dd>
       <dt>This document</dt><dd><code>docs/overview</code>, regenerated with Playwright from sample data.</dd>
     </dl>
   </div>
 
-  <div class="foot"><span>Med Med</span><span>Updated November 9, 2026 · 2</span></div>
+  <div class="foot"><span>Med Med</span><span>Updated November 10, 2026 · 2</span></div>
 </section>
 
 </body>
