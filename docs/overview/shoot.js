@@ -79,6 +79,10 @@ async function open(page, hash) {
   await open(page, "#settings");
   await page.screenshot({ path: path.join(OUT, "settings.png") });
 
+  await page.click('.rxrow[data-rx="diltiazem"]');
+  await page.waitForTimeout(500);
+  await page.screenshot({ path: path.join(OUT, "refill.png") });
+
   page = await newPage(browser, { width: 1194, height: 834 });
   await open(page, "#today");
   await page.screenshot({ path: path.join(OUT, "ipad.png") });

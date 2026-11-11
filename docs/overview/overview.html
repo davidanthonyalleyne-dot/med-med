@@ -47,7 +47,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
 .glance b{font-size:26px;font-weight:600;letter-spacing:-.5px;line-height:1.1}
 .glance span{font-size:12px;color:var(--muted)}
 
-.row2{display:grid;grid-template-columns:1.3in 1.75in minmax(0,1fr);gap:20px;align-items:start}
+.row2{display:grid;grid-template-columns:1.3in 1.3in minmax(0,1fr);gap:20px;align-items:start}
 .row2 .shot img.sheet{border-radius:6px}
 .row2 .shot img.ipad{border-radius:12px}
 
@@ -107,7 +107,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
       <div class="eyebrow">App overview</div>
       <h1>Med Med</h1>
       <p class="lede">Yuki's heart meds, logged by whoever gives them.</p>
-      <p class="ver">App version 2026.11.10 · Document version 2.0</p>
+      <p class="ver">App version 2026.11.10 · Document version 2.1</p>
     </div>
   </div>
 
@@ -155,7 +155,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.10 · Document 2.0</span><span>Updated November 10, 2026 · 1</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.10 · Document 2.1</span><span>Updated November 10, 2026 · 1</span></div>
 </section>
 
 <section class="page">
@@ -163,12 +163,12 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     <div class="shot">
       <img src="shots/settings.png" alt="Settings with household code, alerts switch and printable sheets">
       <b>Settings</b>
-      <p>Household code, invite, alerts switch and blank sheets.</p>
+      <p>Prescriptions, household code, invite, alerts switch and blank sheets.</p>
     </div>
     <div class="shot">
-      <img class="sheet" src="shots/sheet.png" alt="Printable monthly sheet for November 2026">
-      <b>Printable sheet</b>
-      <p>One letter page per month with a box to tick and initial. Filled-in sheets can be photographed and imported.</p>
+      <img src="shots/refill.png" alt="Diltiazem prescription with days left, call pharmacy and copy refill request">
+      <b>Refills</b>
+      <p>Each prescription shows days left. Call the pharmacy, copy a refill request or mark it refilled.</p>
     </div>
     <div class="shot">
       <img class="ipad" src="shots/ipad.png" alt="iPad landscape layout with sidebar, today and month side by side">
@@ -191,6 +191,10 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
       <p>No accounts or passwords. The log can only be read or changed with the household code, so the invite stays in the family. If it leaks, Change starts a new code.</p>
     </div>
     <div class="sec">
+      <h2>Prescriptions and refills</h2>
+      <p>Each medicine keeps its Rx number, pharmacy, quantity, refills left, last fill date and the vet. Days left come from the fill date, quantity and doses per day, and turn red at ten days. With no refills left, it points you to the vet first.</p>
+    </div>
+    <div class="sec">
       <h2>Paper sheets</h2>
       <p>Settings offers last month, this month and next month as letter PDFs with alternating black and white time bands. Filled-in sheets can be photographed and imported into the log, each dose at its scheduled time.</p>
     </div>
@@ -204,14 +208,14 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.10 · Document 2.0</span><span>Updated November 10, 2026 · 2</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.10 · Document 2.1</span><span>Updated November 10, 2026 · 2</span></div>
 </section>
 
 <section class="page tp">
   <div class="head">
     <img src="shots/icon.svg" alt="" style="width:44px;height:44px;border-radius:11px">
     <div>
-      <div class="eyebrow">Med Med · App version 2026.11.10 · Document version 2.0</div>
+      <div class="eyebrow">Med Med · App version 2026.11.10 · Document version 2.1</div>
       <h1 style="font-size:28px">Technical setup</h1>
     </div>
   </div>
@@ -237,7 +241,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
   </div>
   <div class="tblwrap"><table class="tbl">
     <tr><th>Service</th><th>Used for</th><th>Details</th></tr>
-    <tr><td>Firebase Firestore</td><td>The shared dose log</td><td>Free Spark plan, Toronto region. <code>households/&lt;code&gt;/days</code> holds who gave each dose and when, <code>subs</code> each device's push address, <code>alerts</code> the alerts sent. <code>firestore.rules</code> checks every write.</td></tr>
+    <tr><td>Firebase Firestore</td><td>The shared dose log</td><td>Free Spark plan, Toronto region. <code>households/&lt;code&gt;/days</code> holds who gave each dose and when, <code>meds</code> the prescriptions, <code>subs</code> each device's push address, <code>alerts</code> the alerts sent. <code>firestore.rules</code> checks every write.</td></tr>
     <tr><td>Firebase Auth</td><td>Access to the log</td><td>Anonymous sign-in, no accounts. Access also needs the household code.</td></tr>
     <tr><td>GitHub Pages</td><td>Hosting</td><td>Serves the public <code>med-med</code> repo as a static site.</td></tr>
     <tr><td>GitHub Actions</td><td>Alert checker</td><td><code>missed-dose-alerts.yml</code> reads Firestore over REST. Secrets <code>HOUSEHOLD_CODE</code> and <code>VAPID_PRIVATE_KEY</code> live in Actions secrets.</td></tr>
@@ -252,11 +256,11 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
   <div class="runs">
     <div><b>On the device</b>The app, the printable sheets and an offline copy of the log that syncs when the connection returns.</div>
     <div><b>Network calls</b>The two script CDNs, Firebase Auth and Firestore, and the device's push service. No analytics or tracking.</div>
-    <div><b>Data kept</b>Log, push addresses and alert markers in Firestore; household code and preferences on each device; secrets in GitHub; the trigger token in cron-job.org.</div>
+    <div><b>Data kept</b>Log, prescriptions, push addresses and alert markers in Firestore; household code and preferences on each device; secrets in GitHub; the trigger token in cron-job.org.</div>
     <div><b>Regenerating this document</b>From the repo root run <code>node docs/overview/shoot.js</code>, then <code>node docs/overview/pdf.js</code>. Screenshots use sample doses and made-up names.</div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.10 · Document 2.0</span><span>Updated November 10, 2026 · 3</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.10 · Document 2.1</span><span>Updated November 10, 2026 · 3</span></div>
 </section>
 
 </body>
