@@ -166,6 +166,28 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .lrow .copy svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .lrow .copy:focus-visible{outline:2px solid var(--text);outline-offset:2px;border-radius:8px}
 .lrow .codeval{font-size:17px;letter-spacing:.04em;color:var(--text)}
+.rxrow{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:60px}
+.rxrow + .rxrow{border-top:.5px solid var(--rule)}
+.rxrow:focus-visible{outline:2px solid var(--text);outline-offset:-2px}
+.rxrow .sq{width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
+.rxrow .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
+.rxrow .nm b{font-weight:600}
+.rxrow .left{font-size:13px;color:var(--muted)}
+.rxrow .left.soon{color:var(--bad);font-weight:600}
+.rxrow .chev{width:8px;height:8px;border-top:2px solid var(--faint);border-right:2px solid var(--faint);transform:rotate(45deg);flex:none}
+.rxlist .sl{gap:12px}
+.rxlist .sl .k{color:var(--muted);font-size:15px;flex:none}
+.rxlist .sl .v{text-align:right;min-width:0;overflow-wrap:anywhere}
+.rxlist .sl a{color:var(--text);font-weight:600;text-decoration:none}
+.rxstat{font-size:15px;line-height:1.4}
+.minibtn{all:unset;cursor:pointer;margin-left:8px;font-size:13px;font-weight:600;padding:4px 10px;border-radius:12px;background:var(--bg);color:var(--text)}
+.minibtn:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.rxstat .soon{color:var(--bad);font-weight:600}
+.rxbtns{display:grid;gap:8px}
+.rxedit{display:grid;gap:10px}
+.rxedit label{display:grid;gap:4px;font-size:13px;font-weight:500;color:var(--muted)}
+.rxedit input{font:inherit;font-size:17px;color:var(--text);background:var(--sheetwell);border:0;border-radius:10px;min-height:46px;padding:0 12px}
+.rxedit input:focus-visible{outline:2px solid var(--text)}
 .switch{all:unset;cursor:pointer;flex:none;position:relative;width:51px;height:31px;border-radius:16px;background:var(--ring);transition:background .2s}
 .switch::after{content:"";position:absolute;top:2px;left:2px;width:27px;height:27px;border-radius:50%;background:#FFFFFF;box-shadow:0 2px 4px rgba(0,0,0,.2);transition:transform .2s}
 .switch[aria-checked="true"]{background:var(--ok)}
@@ -283,6 +305,11 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
       <div class="list" id="family"></div>
       <p class="sub" id="familyNote"></p>
     </div>
+    <div class="section" id="rxSection" hidden>
+      <div class="label">Prescriptions</div>
+      <div class="list" id="rxList"></div>
+      <p class="sub">Days left are estimated from the last fill and today's schedule. Tap a medicine to reorder.</p>
+    </div>
     <div class="section" id="alertsSection" hidden>
       <div class="label">Missed-dose alerts</div>
       <div class="list" id="alerts"></div>
@@ -303,6 +330,13 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
   <button class="tab" data-tab="print"><svg viewBox="0 0 24 24"><path d="M4 7h9M17 7h3M4 17h3M11 17h9"/><circle cx="15" cy="7" r="2.2"/><circle cx="9" cy="17" r="2.2"/></svg>Settings</button>
 </nav>
 
+<div class="scrim" id="rxScrim" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="rxTitle">
+    <div class="grab"></div>
+    <div class="shead"><button class="x" id="rxClose">Close</button><b id="rxTitle"></b><span></span></div>
+    <div id="rxBody"></div>
+  </div>
+</div>
 <div class="scrim" id="scrim" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="sTitle">
     <div class="grab"></div>
@@ -334,7 +368,7 @@ const ymd = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`
 const ym  = (y,m) => `${y}-${pad(m+1)}`;
 const parse = s => { const [y,m,d]=s.split("-").map(Number); return new Date(y,m-1,d,12); };
 const fmtTime = iso => { const d=new Date(iso); let h=d.getHours(), m=d.getMinutes(); const ap=h<12?"AM":"PM"; h=h%12||12; return `${h}:${pad(m)} ${ap}`; };
-const esc = s => String(s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const esc = s => String(s==null?"":s).replace(/[&<>"]/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const $ = id => document.getElementById(id);
 const CHECK = '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
@@ -499,6 +533,111 @@ $("plist").addEventListener("click", ev=>{
   setTimeout(()=>URL.revokeObjectURL(url), 60000);
 });
 
+/* ---------- Prescriptions ---------- */
+const RX_ORDER=["pimobendan","diltiazem","furosemide","digoxin"];
+const RX_COL={pimobendan:"--pimo",diltiazem:"--dilt",furosemide:"--furo",digoxin:"--digo"};
+let rx={}, rxUnsub=null, rxOpen=null, rxEditing=false;
+function perDay(key){ return SLOTS.filter(s=>s.meds.some(([n])=>n.toLowerCase().startsWith(key))).length; }
+function rxSupply(m,key){
+  const q=parseFloat(m.qty), f=m.filled&&/^\d{4}-\d{2}-\d{2}$/.test(m.filled)?parse(m.filled):null, pd=perDay(key);
+  if(!q||!f||!pd) return null;
+  const out=new Date(f); out.setDate(out.getDate()+Math.floor(q/pd));
+  const left=Math.round((out-parse(ymd(doseDay())))/864e5);
+  return {left, out};
+}
+const fmtDay=d=>d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
+function rxLeftText(m,key){
+  const s=rxSupply(m,key);
+  if(!s) return {t:"Add the fill date and quantity", soon:false};
+  if(s.left<=0) return {t:"Probably run out. Check the bottle", soon:true};
+  return {t:`About ${s.left} day${s.left===1?"":"s"} left · runs out ${fmtDay(s.out)}`, soon:s.left<=10};
+}
+function renderRx(){
+  const sec=$("rxSection"); sec.hidden=!(syncReady && household);
+  if(sec.hidden) return;
+  const keys=RX_ORDER.filter(k=>rx[k]);
+  if(!keys.length){ $("rxList").innerHTML=`<div class="lrow"><span class="at">No prescriptions saved yet</span></div>`; return; }
+  $("rxList").innerHTML=keys.map(k=>{ const m=rx[k], l=rxLeftText(m,k);
+    return `<button class="rxrow" data-rx="${k}" style="--c:var(${RX_COL[k]})"><i class="sq"></i><span class="nm"><b>${esc(m.name)} ${esc(m.strength||"")}</b><span class="left ${l.soon?"soon":""}">${esc(l.t)}</span></span><i class="chev" aria-hidden="true"></i></button>`; }).join("");
+  if(rxOpen) drawRx();
+}
+function telHref(n){ return "tel:"+String(n||"").replace(/[^0-9+]/g,""); }
+function refillText(m){
+  return `Hi, I'd like to refill a prescription for Yuki (dog) Alleyne: ${m.name} ${m.strength||""}${m.rx?`, Rx #${m.rx}`:""}. Thank you.`;
+}
+function drawRx(){
+  const k=rxOpen, m=rx[k]; if(!m){ closeRx(); return; }
+  $("rxTitle").textContent=`${m.name} ${m.strength||""}`;
+  if(rxEditing){
+    const f=(id,label,val,type="text",extra="")=>`<label for="${id}">${label}<input id="${id}" type="${type}" value="${esc(val||"")}" ${extra}></label>`;
+    $("rxBody").innerHTML=`<form class="rxedit" id="rxForm">
+      ${f("rxNo","Rx number",m.rx,"text",'inputmode="numeric" autocomplete="off"')}
+      ${f("rxQty","Quantity dispensed",m.qty,"text",'inputmode="numeric"')}
+      ${f("rxRef","Refills left",m.refills,"text",'inputmode="numeric"')}
+      ${f("rxFill","Last filled",m.filled,"date")}
+      ${f("rxPh","Pharmacy",m.pharmacy)}
+      ${f("rxPhNo","Pharmacy phone",m.pharmacyPhone,"tel")}
+      ${f("rxNote","Note",m.note)}
+      <button class="btnwide dark" type="submit">Save</button>
+      <button class="clear" type="button" id="rxCancel" style="color:var(--muted)">Cancel</button>
+    </form>`;
+    $("rxCancel").onclick=()=>{ rxEditing=false; drawRx(); };
+    $("rxForm").addEventListener("submit",ev=>{ ev.preventDefault();
+      saveRx(k,{rx:$("rxNo").value.trim(),qty:$("rxQty").value.trim(),refills:$("rxRef").value.trim(),filled:$("rxFill").value,pharmacy:$("rxPh").value.trim(),pharmacyPhone:$("rxPhNo").value.trim(),note:$("rxNote").value.trim()},"Saved");
+      rxEditing=false; });
+    return;
+  }
+  const l=rxLeftText(m,k), ref=m.refills===""||m.refills==null?null:parseInt(m.refills,10);
+  const refLine = ref===null ? "Refills left: not recorded yet." : ref>0 ? `${ref} refill${ref===1?"":"s"} left, so the pharmacy can refill it directly.` : `No refills left. The pharmacy will need a new prescription from ${esc(m.prescriber||"the vet")}.`;
+  const row=(k2,v)=>v?`<div class="sl"><span class="k">${k2}</span><span class="v">${v}</span></div>`:"";
+  $("rxBody").innerHTML=`<div style="display:grid;gap:16px">
+    <div class="rxstat"><span class="${l.soon?"soon":""}">${esc(l.t)}</span><br><span style="color:var(--muted)">${refLine}</span></div>
+    <div class="rxbtns">
+      ${m.pharmacyPhone?`<a class="btnwide dark" href="${telHref(m.pharmacyPhone)}" style="text-decoration:none">Call ${esc((m.pharmacy||"pharmacy").split(" (")[0])}</a>`:""}
+      <button class="btnwide" id="rxCopy">Copy refill request</button>
+      ${ref===0&&m.prescriberPhone?`<a class="btnwide" href="${telHref(m.prescriberPhone)}" style="text-decoration:none">Call ${esc(m.prescriber||"the vet")}</a>`:""}
+    </div>
+    <div><div class="label">Prescription</div><div class="slist rxlist">
+      ${row("Rx number", m.rx?`<span class="mono">${esc(m.rx)}</span> <button class="minibtn" id="rxCopyNo">Copy</button>`:"Not recorded")}
+      ${row("Directions", esc(m.directions))}
+      ${row("Quantity", esc(m.qty?`${m.qty} ${m.form||""}s`:"Not recorded"))}
+      ${row("Last filled", m.filled?esc(parse(m.filled).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})):"Not recorded")}
+      ${row("Pharmacy", esc(m.pharmacy)+(m.pharmacyAddress?`<br><span class="at">${esc(m.pharmacyAddress)}</span>`:""))}
+      ${row("Phone", m.pharmacyPhone?`<a href="${telHref(m.pharmacyPhone)}">${esc(m.pharmacyPhone)}</a>`:"")}
+      ${row("Prescriber", esc(m.prescriber)+(m.prescriberPhone?`<br><a href="${telHref(m.prescriberPhone)}">${esc(m.prescriberPhone)}</a>`:""))}
+      ${row("Note", esc(m.note))}
+    </div></div>
+    <button class="btnwide dark" id="rxRefilled">Mark refilled today</button>
+    <button class="clear" id="rxEdit" style="color:var(--text);justify-self:center">Edit details</button>
+  </div>`;
+  const copy=async(text,msg)=>{ try{ await navigator.clipboard.writeText(text); toast(msg); }catch(e){ toast(text); } };
+  $("rxCopy").onclick=()=>copy(refillText(m),"Refill request copied");
+  if($("rxCopyNo")) $("rxCopyNo").onclick=()=>copy(m.rx,"Rx number copied");
+  $("rxEdit").onclick=()=>{ rxEditing=true; drawRx(); };
+  $("rxRefilled").onclick=()=>{
+    const upd={filled:ymd(doseDay())};
+    if(ref!==null && ref>0) upd.refills=String(ref-1);
+    saveRx(k,upd,`${m.name} marked refilled`);
+  };
+}
+async function saveRx(k,upd,msg){
+  rx[k]={...rx[k],...upd}; renderRx();
+  try{ await fs.collection("households").doc(household).collection("meds").doc(k).set(upd,{merge:true}); toast(msg); }
+  catch(e){ toast("Couldn't save that. Check your connection and try again."); }
+}
+function openRx(k){ rxOpen=k; rxEditing=false; drawRx(); $("rxScrim").hidden=false; }
+function closeRx(){ $("rxScrim").hidden=true; rxOpen=null; rxEditing=false; }
+$("rxList").addEventListener("click",ev=>{ const b=ev.target.closest(".rxrow"); if(b) openRx(b.dataset.rx); });
+$("rxClose").onclick=closeRx;
+$("rxScrim").addEventListener("click",ev=>{ if(ev.target===$("rxScrim")) closeRx(); });
+document.addEventListener("keydown",ev=>{ if(ev.key==="Escape" && rxOpen) closeRx(); });
+function subscribeRx(){
+  if(rxUnsub) rxUnsub();
+  rxUnsub=fs.collection("households").doc(household).collection("meds").onSnapshot(snap=>{
+    rx={}; snap.docs.forEach(d=>{ rx[d.id]=d.data(); }); renderRx();
+  },()=>{});
+}
+
 function subscribe(){
   if(!db) return;
   if(unsub) unsub();
@@ -594,6 +733,7 @@ async function connect(){
     }
     db = makeDb(household);
     resyncAlerts();
+    subscribeRx();
     setSync("Loading");
     days = {}; render(); subscribe();
     setTimeout(()=>{ if($("sync").textContent==="Loading") setSync("Slow connection"); },10000);
@@ -679,6 +819,7 @@ async function alertsOff(quiet){
 function renderFamily(){
   $("setup").hidden = !(syncReady && !household);
   $("alertsSection").hidden = true;
+  renderRx();
   const f=$("family"), note=$("familyNote");
   if(!syncReady){
     f.innerHTML=`<div class="lrow"><span>This device only</span></div>`;
