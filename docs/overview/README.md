@@ -16,3 +16,7 @@ node docs/overview/pdf.js     # prints overview.html to overview.pdf
 ```
 
 Update the captions and the "Updated" date in `overview.html` whenever the app changes in a way users would notice.
+
+## Where the current copy lives
+
+The latest PDF is in Google Drive, folder **App Overviews**, named `Med Med Overview - App <app version> - Doc <doc version>.pdf`. Replace it there (and update the Version log sheet in the same folder) whenever the document changes.
