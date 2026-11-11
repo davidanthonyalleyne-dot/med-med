@@ -1,6 +1,6 @@
 # Med Med overview
 
-A two-page overview of what Med Med does, with screenshots, in the app's own style.
+The Med Med overview: two feature pages with screenshots and a Technical setup page, in the app's own style. It shows the app version (APP_VERSION in index.html) and its own document version; bump the document version whenever it changes.
 
 - `overview.html` is the document, `overview.pdf` the printable copy.
 - `shots/` holds the screenshots. They use sample doses from `mock-firebase.js` and a fake household code, never the real log.

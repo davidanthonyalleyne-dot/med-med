@@ -67,6 +67,18 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
 .tech dt{font-weight:600}
 .tech dd{color:#3A3A3C}
 .tech code{font:11px ui-monospace, "SF Mono", Menlo, monospace}
+.ver{margin:4px 0 0;font-size:11.5px;font-weight:500;color:var(--muted);font-variant-numeric:tabular-nums}
+.tp h2{margin:0;font-size:17px;font-weight:600;display:flex;align-items:center;gap:8px}
+.tp h2::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--act);flex:none}
+.tp .note{margin:2px 0 0;font-size:12px;color:var(--muted)}
+.tbl{width:100%;border-collapse:collapse;font-size:11px;line-height:1.38}
+.tbl th{text-align:left;font-size:10.5px;font-weight:600;color:var(--muted);padding:0 8px 4px 0;border-bottom:.5px solid var(--faint)}
+.tbl td{padding:4px 8px 4px 0;border-bottom:.5px solid var(--rule);vertical-align:top;color:#3A3A3C}
+.tbl td:first-child{font-weight:600;color:var(--text);white-space:nowrap}
+.tbl code,.runs code{font:10.5px ui-monospace, "SF Mono", Menlo, monospace;color:var(--text)}
+.runs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px 26px}
+.runs div{font-size:11.5px;color:#3A3A3C}
+.runs b{display:block;color:var(--text);font-size:12px;margin-bottom:1px}
 .foot{margin-top:auto;display:flex;justify-content:space-between;font-size:11px;color:var(--muted);border-top:.5px solid var(--rule);padding-top:8px}
 
 @media print{
@@ -81,8 +93,8 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
   .glance div:nth-child(3){padding-left:0;border-left:0}
   .glance div:nth-child(n+3){border-top:.5px solid var(--rule)}
   .sections{grid-template-columns:1fr}
-  .tech dl{grid-template-columns:1fr}
-  .tech dt{border-bottom:0;padding-bottom:0}
+  .tblwrap{overflow-x:auto}
+  .runs{grid-template-columns:1fr}
 }
 </style>
 </head>
@@ -95,6 +107,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
       <div class="eyebrow">App overview</div>
       <h1>Med Med</h1>
       <p class="lede">Yuki's heart meds, logged by whoever gives them.</p>
+      <p class="ver">App version 1.0 · Document version 2.0</p>
     </div>
   </div>
 
@@ -142,7 +155,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med</span><span>Updated November 10, 2026 · 1</span></div>
+  <div class="foot"><span>Med Med · App 1.0 · Document 2.0</span><span>Updated November 10, 2026 · 1</span></div>
 </section>
 
 <section class="page">
@@ -178,25 +191,72 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
       <p>No accounts or passwords. The log can only be read or changed with the household code, so the invite stays in the family. If it leaks, Change starts a new code.</p>
     </div>
     <div class="sec">
+      <h2>Paper sheets</h2>
+      <p>Settings offers last month, this month and next month as letter PDFs with alternating black and white time bands. Filled-in sheets can be photographed and imported into the log, each dose at its scheduled time.</p>
+    </div>
+    <div class="sec">
+      <h2>How it runs</h2>
+      <p>A web app on GitHub Pages that installs to the Home Screen with the capsule and paw icon. It follows the device's dark mode, works offline and catches up when it reconnects. Details are on the Technical setup page.</p>
+    </div>
+    <div class="sec">
       <h2>Known limits</h2>
       <p>Alerts land 20 to 30 minutes after a missed dose, since the log is checked every 10 minutes. Rotation is locked with the iPad's own Rotation Lock. Pinch and double-tap zoom are off.</p>
     </div>
   </div>
 
-  <div class="tech">
-    <h2>Technical setup</h2>
-    <dl>
-      <dt>Hosting</dt><dd>GitHub Pages, public <code>med-med</code> repo: <code>index.html</code>, web manifest and icons, <code>sw.js</code> for notifications.</dd>
-      <dt>Shared log</dt><dd>Firebase Cloud Firestore, free Spark plan, Toronto region. <code>households/&lt;code&gt;/days</code> holds one document per day; <code>subs</code> and <code>alerts</code> serve the alerts.</dd>
-      <dt>Sign-in and rules</dt><dd>Firebase anonymous sign-in. <code>firestore.rules</code> limits access to household paths and checks every document.</dd>
-      <dt>Alert checker</dt><dd>cron-job.org starts a GitHub Actions run every 10 minutes: <code>scripts/check_missed.py</code> reads Firestore over REST and sends Web Push (<code>pywebpush</code>, VAPID).</dd>
-      <dt>Secrets</dt><dd><code>HOUSEHOLD_CODE</code> and <code>VAPID_PRIVATE_KEY</code> in GitHub secrets; a GitHub token limited to starting Actions on this repo lives in cron-job.org.</dd>
-      <dt>Libraries</dt><dd>Firebase JS SDK 10.12.2, jsPDF 2.5.1 for the sheets. No build step.</dd>
-      <dt>This document</dt><dd><code>docs/overview</code>, regenerated with Playwright from sample data.</dd>
-    </dl>
+  <div class="foot"><span>Med Med · App 1.0 · Document 2.0</span><span>Updated November 10, 2026 · 2</span></div>
+</section>
+
+<section class="page tp">
+  <div class="head">
+    <img src="shots/icon.svg" alt="" style="width:44px;height:44px;border-radius:11px">
+    <div>
+      <div class="eyebrow">Med Med · App version 1.0 · Document version 2.0</div>
+      <h1 style="font-size:28px">Technical setup</h1>
+    </div>
   </div>
 
-  <div class="foot"><span>Med Med</span><span>Updated November 10, 2026 · 2</span></div>
+  <div>
+    <h2>Sources and libraries</h2>
+    <p class="note">Everything the app and alert checker load. No web fonts: the app uses the system font.</p>
+  </div>
+  <div class="tblwrap"><table class="tbl">
+    <tr><th>Source</th><th>Version</th><th>What it does</th><th>Loaded from</th><th>Licence</th></tr>
+    <tr><td>Med Med code</td><td>1.0</td><td>The app, service worker, icons and alert checker, all written for Med Med</td><td><code>index.html</code>, <code>sw.js</code>, <code>icons/</code>, <code>scripts/</code></td><td>Own</td></tr>
+    <tr><td>Firebase JS SDK</td><td>10.12.2</td><td>Anonymous sign-in and Firestore with offline cache</td><td><code>www.gstatic.com/firebasejs</code></td><td>Apache 2.0</td></tr>
+    <tr><td>jsPDF</td><td>2.5.1</td><td>Draws the blank monthly sheets on the device</td><td><code>cdnjs.cloudflare.com</code></td><td>MIT</td></tr>
+    <tr><td>pywebpush</td><td>2.0.3</td><td>Encrypts and signs Web Push messages</td><td>PyPI, on the GitHub runner</td><td>MPL 2.0</td></tr>
+    <tr><td>Python</td><td>3.12</td><td>Runs the alert checker</td><td>GitHub runner</td><td>PSF</td></tr>
+    <tr><td>Actions steps</td><td>v4, v5</td><td>checkout, setup-python and cache for the checker</td><td>GitHub Marketplace</td><td>MIT</td></tr>
+    <tr><td>Playwright</td><td>installed</td><td>Takes this document's screenshots and prints the PDF</td><td><code>docs/overview</code> scripts</td><td>Apache 2.0</td></tr>
+  </table></div>
+
+  <div>
+    <h2>Integrations</h2>
+    <p class="note">No keys, tokens or secrets are shown here.</p>
+  </div>
+  <div class="tblwrap"><table class="tbl">
+    <tr><th>Service</th><th>Used for</th><th>Details</th></tr>
+    <tr><td>Firebase Firestore</td><td>The shared dose log</td><td>Free Spark plan, Toronto region. <code>households/&lt;code&gt;/days</code> holds who gave each dose and when, <code>subs</code> each device's push address, <code>alerts</code> the alerts sent. <code>firestore.rules</code> checks every write.</td></tr>
+    <tr><td>Firebase Auth</td><td>Access to the log</td><td>Anonymous sign-in, no accounts. Access also needs the household code.</td></tr>
+    <tr><td>GitHub Pages</td><td>Hosting</td><td>Serves the public <code>med-med</code> repo as a static site.</td></tr>
+    <tr><td>GitHub Actions</td><td>Alert checker</td><td><code>missed-dose-alerts.yml</code> reads Firestore over REST. Secrets <code>HOUSEHOLD_CODE</code> and <code>VAPID_PRIVATE_KEY</code> live in Actions secrets.</td></tr>
+    <tr><td>cron-job.org</td><td>Starting the checker</td><td>"Med Med alerts" POSTs to GitHub's workflow-dispatch API every 10 minutes with a token that can only start Actions on this repo.</td></tr>
+    <tr><td>Web Push</td><td>Missed-dose alerts</td><td>Apple's or Google's push service. Messages are encrypted, signed with a VAPID key, and carry only the dose name, time and meds.</td></tr>
+    <tr><td>Browser features</td><td>On each device</td><td>Local storage, service worker, Push and Notifications, clipboard and share sheet, web manifest for Home Screen install.</td></tr>
+  </table></div>
+
+  <div>
+    <h2>What runs where</h2>
+  </div>
+  <div class="runs">
+    <div><b>On the device</b>The app, the printable sheets and an offline copy of the log that syncs when the connection returns.</div>
+    <div><b>Network calls</b>The two script CDNs, Firebase Auth and Firestore, and the device's push service. No analytics or tracking.</div>
+    <div><b>Data kept</b>Log, push addresses and alert markers in Firestore; household code and preferences on each device; secrets in GitHub; the trigger token in cron-job.org.</div>
+    <div><b>Regenerating this document</b>From the repo root run <code>node docs/overview/shoot.js</code>, then <code>node docs/overview/pdf.js</code>. Screenshots use sample doses and made-up names.</div>
+  </div>
+
+  <div class="foot"><span>Med Med · App 1.0 · Document 2.0</span><span>Updated November 10, 2026 · 3</span></div>
 </section>
 
 </body>

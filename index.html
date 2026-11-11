@@ -293,6 +293,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
       <div class="list" id="plist"></div>
       <p class="sub">One letter-size page per month with every dose and a box to tick and initial.</p>
     </div>
+    <p class="sub" id="appVersion" style="text-align:center;margin-top:28px"></p>
   </section>
 </main>
 
@@ -315,6 +316,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 <div class="toast" id="toast" hidden></div>
 
 <script>
+const APP_VERSION = "1.0";
 const SLOTS = [
   {key:"early",     name:"Early",        short:"8a",  time:"8:00 AM",  h:8,  meds:[["Pimobendan","7.5 mg"],["Diltiazem","60 mg"]]},
   {key:"late",      name:"Late Morning", short:"10a", time:"10:00 AM", h:10, meds:[["Furosemide","40 mg"],["Digoxin","0.0625 mg"]]},
@@ -724,6 +726,7 @@ $("joinForm").addEventListener("submit", ev=>{
 });
 
 /* ---------- Boot ---------- */
+$("appVersion").textContent = `Med Med ${APP_VERSION}`;
 (function readInvite(){
   const m=location.hash.match(/^#join=([A-Za-z0-9-]+)/);
   if(m){ const c=cleanCode(m[1]); if(c){ household=c; store.set("yukiHousehold", c); setTimeout(()=>toast("Joined Yuki's log"),300); } history.replaceState(null,"",location.pathname+"#today"); }
