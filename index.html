@@ -310,6 +310,11 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
       <div class="list" id="rxList"></div>
       <p class="sub">Days left are estimated from the last fill and today's schedule. Tap a medicine to reorder.</p>
     </div>
+    <div class="section">
+      <div class="label">Sounds</div>
+      <div class="list"><div class="lrow"><label for="soundSwitch">Ding when a dose is logged</label><button class="switch" id="soundSwitch" role="switch" aria-checked="true"></button></div></div>
+      <p class="sub">One dose each day woofs instead. Sounds follow the phone's silent switch.</p>
+    </div>
     <div class="section" id="alertsSection" hidden>
       <div class="label">Missed-dose alerts</div>
       <div class="list" id="alerts"></div>
@@ -490,10 +495,66 @@ document.addEventListener("keydown", ev=>{ if(ev.key==="Escape" && sheet) closeS
 $("sLog").onclick=()=>{
   const e=entry(selDate,sheet.key);
   if(e && e.by===sheet.pick){ closeSheet(); return; }
+  if(!e) playLogSound(selDate, sheet.key);
   save(sheet.key, e ? {at:e.at, by:sheet.pick} : {at:new Date().toISOString(), by:sheet.pick});
   store.set("yukiLastGiver", sheet.pick);
   closeSheet();
 };
+/* ---------- Sounds (made in the browser, no audio files) ---------- */
+let actx=null;
+function soundsOn(){ return store.get("yukiSounds", true)!==false; }
+function audio(){
+  const C=window.AudioContext||window.webkitAudioContext; if(!C) return null;
+  if(!actx) actx=new C();
+  if(actx.state==="suspended") actx.resume();
+  return actx;
+}
+function ding(){
+  const a=audio(); if(!a) return; const t=a.currentTime+0.02;
+  // Two bright bell tones a fifth apart, each with a soft overtone.
+  [[1318.5,0],[1975.5,0.11]].forEach(([f,d])=>{
+    [[f,0.22],[f*2,0.05]].forEach(([freq,vol])=>{
+      const o=a.createOscillator(), g=a.createGain();
+      o.type="sine"; o.frequency.value=freq;
+      g.gain.setValueAtTime(0.0001,t+d);
+      g.gain.exponentialRampToValueAtTime(vol,t+d+0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+d+0.7);
+      o.connect(g).connect(a.destination); o.start(t+d); o.stop(t+d+0.75);
+    });
+  });
+}
+function woof(){
+  const a=audio(); if(!a) return; const t=a.currentTime+0.02;
+  const out=a.createGain(); out.gain.value=0.9; out.connect(a.destination);
+  // Voice: a buzzy tone that jumps up then falls, shaped like a "wuh-OOF".
+  const o=a.createOscillator(); o.type="sawtooth";
+  o.frequency.setValueAtTime(210,t);
+  o.frequency.linearRampToValueAtTime(420,t+0.04);
+  o.frequency.exponentialRampToValueAtTime(150,t+0.26);
+  const f1=a.createBiquadFilter(); f1.type="bandpass"; f1.frequency.setValueAtTime(500,t); f1.frequency.linearRampToValueAtTime(900,t+0.05); f1.frequency.exponentialRampToValueAtTime(420,t+0.26); f1.Q.value=1.4;
+  const lp=a.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=1800;
+  const g=a.createGain();
+  g.gain.setValueAtTime(0.0001,t); g.gain.exponentialRampToValueAtTime(0.55,t+0.03);
+  g.gain.setValueAtTime(0.55,t+0.09); g.gain.exponentialRampToValueAtTime(0.0001,t+0.3);
+  o.connect(f1).connect(lp).connect(g).connect(out); o.start(t); o.stop(t+0.32);
+  // Breath: a short burst of filtered noise at the start of the bark.
+  const len=Math.floor(a.sampleRate*0.18), buf=a.createBuffer(1,len,a.sampleRate), ch=buf.getChannelData(0);
+  for(let i=0;i<len;i++) ch[i]=Math.random()*2-1;
+  const n=a.createBufferSource(); n.buffer=buf;
+  const nf=a.createBiquadFilter(); nf.type="bandpass"; nf.frequency.value=1100; nf.Q.value=0.9;
+  const ng=a.createGain(); ng.gain.setValueAtTime(0.0001,t); ng.gain.exponentialRampToValueAtTime(0.35,t+0.01); ng.gain.exponentialRampToValueAtTime(0.0001,t+0.16);
+  n.connect(nf).connect(ng).connect(out); n.start(t); n.stop(t+0.18);
+}
+// The woof dose is picked from the date, so it's the same dose on every phone.
+function woofSlot(date){ let h=7; for(const c of date) h=(h*31+c.charCodeAt(0))>>>0; return SLOTS[h%SLOTS.length].key; }
+function playLogSound(date,key){
+  if(!soundsOn()) return;
+  try{ (woofSlot(date)===key ? woof : ding)(); }catch(e){}
+}
+function renderSoundSwitch(){ $("soundSwitch").setAttribute("aria-checked", soundsOn()); }
+$("soundSwitch").onclick=()=>{ const on=!soundsOn(); store.set("yukiSounds", on); renderSoundSwitch(); if(on) ding(); };
+renderSoundSwitch();
+
 $("sClear").onclick=()=>{ save(sheet.key, null); closeSheet(); };
 
 async function save(key, val){
