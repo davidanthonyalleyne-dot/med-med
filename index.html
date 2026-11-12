@@ -355,7 +355,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const APP_VERSION = "2026.11.10";
+const APP_VERSION = "2026.11.12";
 const SLOTS = [
   {key:"early",     name:"Early",        short:"8a",  time:"8:00 AM",  h:8,  meds:[["Pimobendan","7.5 mg"],["Diltiazem","60 mg"]]},
   {key:"late",      name:"Late Morning", short:"10a", time:"10:00 AM", h:10, meds:[["Furosemide","40 mg"],["Digoxin","0.0625 mg"]]},
@@ -523,7 +523,7 @@ function ding(){
     });
   });
 }
-function woof(){
+function synthWoof(){
   const a=audio(); if(!a) return; const t=a.currentTime+0.02;
   const out=a.createGain(); out.gain.value=0.9; out.connect(a.destination);
   // Voice: a buzzy tone that jumps up then falls, shaped like a "wuh-OOF".
@@ -546,6 +546,22 @@ function woof(){
   n.connect(nf).connect(ng).connect(out); n.start(t); n.stop(t+0.18);
 }
 // The woof dose is picked from the date, so it's the same dose on every phone.
+// A real bark (CC0 recording by Brandon Morris, OpenGameArt), decoded once on the first tap.
+let woofBuf=null, woofLoading=null;
+function loadWoof(){
+  const a=audio(); if(!a||woofBuf||woofLoading) return woofLoading;
+  woofLoading=fetch("sounds/woof.mp3").then(r=>r.arrayBuffer())
+    .then(b=>new Promise((ok,no)=>a.decodeAudioData(b,ok,no)))
+    .then(buf=>{ woofBuf=buf; }).catch(()=>{ woofLoading=null; });
+  return woofLoading;
+}
+document.addEventListener("pointerdown", function first(){ if(soundsOn()) loadWoof(); document.removeEventListener("pointerdown", first); });
+function woof(){
+  const a=audio(); if(!a) return;
+  if(!woofBuf){ synthWoof(); loadWoof(); return; }
+  const src=a.createBufferSource(), g=a.createGain(); g.gain.value=0.9;
+  src.buffer=woofBuf; src.connect(g).connect(a.destination); src.start(a.currentTime+0.01);
+}
 function woofSlot(date){ let h=7; for(const c of date) h=(h*31+c.charCodeAt(0))>>>0; return SLOTS[h%SLOTS.length].key; }
 function playLogSound(date,key){
   if(!soundsOn()) return;
