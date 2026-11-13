@@ -83,6 +83,20 @@ async function open(page, hash) {
   await page.waitForTimeout(500);
   await page.screenshot({ path: path.join(OUT, "refill.png") });
 
+  // Add a medicine from a made-up label photo (sample pharmacy, Rx number and phone)
+  const lp = await browser.newPage({ viewport: { width: 900, height: 600 } });
+  await lp.setContent(`<body style="margin:0;background:#c97a27;display:grid;place-items:center;height:600px"><div style="background:#fbfaf6;width:760px;padding:28px 34px;font:22px/1.4 Helvetica;text-transform:uppercase;transform:rotate(-1.5deg)">
+    <div style="display:flex;justify-content:space-between;font-weight:700;border-bottom:2px solid #222;padding-bottom:6px">Main Street Pharmacy<span>416-555-0117</span></div>
+    <div>200 Example St, Toronto</div><div>Rx 2005118 &nbsp; Dr. Lee, DVM</div>
+    <div style="font-size:30px;font-weight:700;margin-top:8px">Enalapril 5 mg tablet</div><div>Give 1 tablet by mouth twice daily</div><div>Qty: 60 &nbsp; Refills: 2</div></div></body>`);
+  const label = path.join(OUT, "label.jpg"); await lp.screenshot({ path: label, quality: 85 }); await lp.close();
+  page = await newPage(browser, phone);
+  await open(page, "#settings");
+  await page.click("#addMed"); await page.setInputFiles("#labelPhoto", label);
+  await page.waitForSelector("#addForm", { timeout: 120000 }); await page.waitForTimeout(2600);
+  await page.screenshot({ path: path.join(OUT, "addmed.png") });
+  fs.unlinkSync(label);
+
   page = await newPage(browser, { width: 1194, height: 834 });
   await open(page, "#today");
   await page.screenshot({ path: path.join(OUT, "ipad.png") });

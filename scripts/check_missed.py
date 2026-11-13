@@ -1,6 +1,6 @@
 """Med Med missed-dose checker.
 
-Runs on a GitHub Actions schedule. Reads Yuki's shared log in Firestore and,
+Runs on a GitHub Actions schedule. Reads the pet's shared log in Firestore and,
 when a dose is about 20 minutes past due with nobody logging it, sends one
 push notification to every phone that turned alerts on in Med Med.
 
@@ -177,10 +177,17 @@ def main():
     subs = [plain({"mapValue": d}) | {"_name": d["name"]} for d in store.list("subs")]
     log(f"{len(missed)} missed dose(s), {len(subs)} phone(s) signed up for alerts")
 
+    pet = "Yuki"
+    try:
+        doc = store.get("meds/pet")
+        if doc and doc.get("fields", {}).get("name", {}).get("stringValue"):
+            pet = doc["fields"]["name"]["stringValue"][:24]
+    except (Exception, SystemExit):
+        pass
     failed = []
     for date, (key, name, time_label, _, meds), due in missed:
         payload = json.dumps({
-            "title": f"Yuki's {name} dose isn't logged",
+            "title": f"{pet}'s {name} dose isn't logged",
             "body": f"Due at {time_label}: {meds}. Tap to log it if it's been given.",
             "tag": f"{date}_{key}",
             "url": "./#today",

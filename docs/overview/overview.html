@@ -107,7 +107,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
       <div class="eyebrow">App overview</div>
       <h1>Med Med</h1>
       <p class="lede">Yuki's heart meds, logged by whoever gives them.</p>
-      <p class="ver">App version 2026.11.12 · Document version 2.3</p>
+      <p class="ver">App version 2026.11.13 · Document version 2.4</p>
     </div>
   </div>
 
@@ -155,7 +155,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.12 · Document 2.3</span><span>Updated November 12, 2026 · 1</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.13 · Document 2.4</span><span>Updated November 13, 2026 · 1</span></div>
 </section>
 
 <section class="page">
@@ -163,12 +163,12 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     <div class="shot">
       <img src="shots/settings.png" alt="Settings with household code, alerts switch and printable sheets">
       <b>Settings</b>
-      <p>Prescriptions, household code, invite, sound and alert switches, and blank sheets.</p>
+      <p>The pet's name, prescriptions, household code, invite, sound and alert switches, and blank sheets.</p>
     </div>
     <div class="shot">
-      <img src="shots/refill.png" alt="Diltiazem prescription with days left, call pharmacy and copy refill request">
-      <b>Refills</b>
-      <p>Each prescription shows days left. Call the pharmacy, copy a refill request or mark it refilled.</p>
+      <img src="shots/addmed.png" alt="New medicine sheet filled in from a scanned label, with dose, times and a new colour">
+      <b>Add a medicine</b>
+      <p>Scan the bottle's label, check what it read, set the dose and times. It gets a colour of its own.</p>
     </div>
     <div class="shot">
       <img class="ipad" src="shots/ipad.png" alt="iPad landscape layout with sidebar, today and month side by side">
@@ -180,7 +180,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
   <div class="sections">
     <div class="sec">
       <h2>Family sync</h2>
-      <p>One log shared through a private household code. Others join with the invite link or the code, and a dose logged on one phone shows on the rest within seconds.</p>
+      <p>One log shared through a private household code. Others join with the invite link or the code, and a dose logged on one phone shows on the rest within seconds. Renaming the pet in Settings changes it for everyone.</p>
     </div>
     <div class="sec">
       <h2>Missed-dose alerts</h2>
@@ -196,7 +196,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
     <div class="sec">
       <h2>Prescriptions and refills</h2>
-      <p>Each medicine keeps its Rx number, pharmacy, quantity, refills left, last fill date and the vet. Days left come from the fill date, quantity and doses per day, and turn red at ten days. With no refills left, it points you to the vet first.</p>
+      <p>Each medicine keeps its Rx number, pharmacy, quantity, refills left and last fill. Days left turn red at ten. A new medicine is added by photographing its label, read on the phone, then joins Today, the sheets and refills.</p>
     </div>
     <div class="sec">
       <h2>Paper sheets</h2>
@@ -212,60 +212,58 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.12 · Document 2.3</span><span>Updated November 12, 2026 · 2</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.13 · Document 2.4</span><span>Updated November 13, 2026 · 2</span></div>
 </section>
 
 <section class="page tp">
   <div class="head">
     <img src="shots/icon.svg" alt="" style="width:44px;height:44px;border-radius:11px">
     <div>
-      <div class="eyebrow">Med Med · App version 2026.11.12 · Document version 2.3</div>
+      <div class="eyebrow">Med Med · App version 2026.11.13 · Document version 2.4</div>
       <h1 style="font-size:28px">Technical setup</h1>
     </div>
   </div>
 
   <div>
     <h2>Sources and libraries</h2>
-    <p class="note">Everything the app and alert checker load. No web fonts: the app uses the system font.</p>
   </div>
   <div class="tblwrap"><table class="tbl">
     <tr><th>Source</th><th>Version</th><th>What it does</th><th>Loaded from</th><th>Licence</th></tr>
-    <tr><td>Med Med code</td><td>2026.11.12</td><td>The app, service worker, icons and alert checker, all written for Med Med</td><td><code>index.html</code>, <code>sw.js</code>, <code>icons/</code>, <code>scripts/</code></td><td>Own</td></tr>
-    <tr><td>Firebase JS SDK</td><td>10.12.2</td><td>Anonymous sign-in and Firestore with offline cache</td><td><code>www.gstatic.com/firebasejs</code></td><td>Apache 2.0</td></tr>
+    <tr><td>Med Med code</td><td>2026.11.13</td><td>App, service worker, icons and alert checker</td><td><code>index.html</code>, <code>sw.js</code>, <code>icons/</code>, <code>scripts/</code></td><td>Own</td></tr>
+    <tr><td>Firebase JS SDK</td><td>10.12.2</td><td>Anonymous sign-in and Firestore with offline cache</td><td><code>www.gstatic.com/firebasejs</code></td><td>Apache&nbsp;2.0</td></tr>
     <tr><td>jsPDF</td><td>2.5.1</td><td>Draws the blank monthly sheets on the device</td><td><code>cdnjs.cloudflare.com</code></td><td>MIT</td></tr>
-    <tr><td>Bark recording</td><td>"Dog barking mono"</td><td>The daily woof, one bark trimmed to a third of a second (the ding is made in code)</td><td>Brandon Morris on OpenGameArt, <code>sounds/woof.mp3</code></td><td>CC0</td></tr>
-    <tr><td>pywebpush</td><td>2.0.3</td><td>Encrypts and signs Web Push messages</td><td>PyPI, on the GitHub runner</td><td>MPL 2.0</td></tr>
-    <tr><td>Python</td><td>3.12</td><td>Runs the alert checker</td><td>GitHub runner</td><td>PSF</td></tr>
-    <tr><td>Actions steps</td><td>v4, v5</td><td>checkout, setup-python and cache for the checker</td><td>GitHub Marketplace</td><td>MIT</td></tr>
-    <tr><td>Playwright</td><td>installed</td><td>Takes this document's screenshots and prints the PDF</td><td><code>docs/overview</code> scripts</td><td>Apache 2.0</td></tr>
+    <tr><td>Tesseract.js</td><td>5.1.1</td><td>Reads label photos on the phone when scanning</td><td><code>cdn.jsdelivr.net</code></td><td>Apache&nbsp;2.0</td></tr>
+    <tr><td>Bark recording</td><td>"Dog barking mono"</td><td>The daily woof (the ding is made in code)</td><td>Brandon Morris on OpenGameArt, <code>sounds/woof.mp3</code></td><td>CC0</td></tr>
+    <tr><td>pywebpush</td><td>2.0.3</td><td>Encrypts and signs Web Push messages</td><td>PyPI, on the GitHub runner</td><td>MPL&nbsp;2.0</td></tr>
+    <tr><td>Python, Actions</td><td>3.12; v4, v5</td><td>Runs the alert checker (checkout, setup-python, cache)</td><td>GitHub runner and Marketplace</td><td>PSF, MIT</td></tr>
+    <tr><td>Playwright</td><td>installed</td><td>This document's screenshots and PDF</td><td><code>docs/overview</code></td><td>Apache&nbsp;2.0</td></tr>
   </table></div>
 
   <div>
-    <h2>Integrations</h2>
-    <p class="note">No keys, tokens or secrets are shown here.</p>
+    <h2>Integrations <span style="font-weight:400;font-size:12px;color:var(--muted)">· no keys or secrets shown</span></h2>
   </div>
   <div class="tblwrap"><table class="tbl">
     <tr><th>Service</th><th>Used for</th><th>Details</th></tr>
-    <tr><td>Firebase Firestore</td><td>The shared dose log</td><td>Free Spark plan, Toronto region. <code>households/&lt;code&gt;/days</code> holds who gave each dose and when, <code>meds</code> the prescriptions, <code>subs</code> each device's push address, <code>alerts</code> the alerts sent. <code>firestore.rules</code> checks every write.</td></tr>
+    <tr><td>Firebase Firestore</td><td>The shared dose log</td><td>Free plan, Toronto. Under <code>households/&lt;code&gt;</code>: <code>days</code> (doses), <code>meds</code> (prescriptions, added medicines, pet's name), <code>subs</code> (push addresses), <code>alerts</code>. Rules check every write.</td></tr>
     <tr><td>Firebase Auth</td><td>Access to the log</td><td>Anonymous sign-in, no accounts. Access also needs the household code.</td></tr>
     <tr><td>GitHub Pages</td><td>Hosting</td><td>Serves the public <code>med-med</code> repo as a static site.</td></tr>
     <tr><td>GitHub Actions</td><td>Alert checker</td><td><code>missed-dose-alerts.yml</code> reads Firestore over REST. Secrets <code>HOUSEHOLD_CODE</code> and <code>VAPID_PRIVATE_KEY</code> live in Actions secrets.</td></tr>
     <tr><td>cron-job.org</td><td>Starting the checker</td><td>"Med Med alerts" POSTs to GitHub's workflow-dispatch API every 10 minutes with a token that can only start Actions on this repo.</td></tr>
     <tr><td>Web Push</td><td>Missed-dose alerts</td><td>Apple's or Google's push service. Messages are encrypted, signed with a VAPID key, and carry only the dose name, time and meds.</td></tr>
-    <tr><td>Browser features</td><td>On each device</td><td>Local storage, Web Audio for the ding and woof, service worker, Push and Notifications, clipboard and share sheet, web manifest for Home Screen install.</td></tr>
+    <tr><td>Browser features</td><td>On each device</td><td>Local storage, the camera or photo picker for labels, Web Audio for the ding and woof, service worker, Push and Notifications, clipboard and share sheet, web manifest for Home Screen install.</td></tr>
   </table></div>
 
   <div>
     <h2>What runs where</h2>
   </div>
   <div class="runs">
-    <div><b>On the device</b>The app, the printable sheets and an offline copy of the log that syncs when the connection returns.</div>
-    <div><b>Network calls</b>The two script CDNs, Firebase Auth and Firestore, and the device's push service. No analytics or tracking.</div>
-    <div><b>Data kept</b>Log, prescriptions, push addresses and alert markers in Firestore; household code and preferences on each device; secrets in GitHub; the trigger token in cron-job.org.</div>
-    <div><b>Regenerating this document</b>From the repo root run <code>node docs/overview/shoot.js</code>, then <code>node docs/overview/pdf.js</code>. Screenshots use sample doses and made-up names.</div>
+    <div><b>On the device</b>The app, label reading, the printable sheets and an offline copy of the log that syncs when the connection returns.</div>
+    <div><b>Network calls</b>The script CDNs (jsDelivr only when scanning a label), Firebase Auth and Firestore, and the device's push service. No analytics or tracking.</div>
+    <div><b>Data kept</b>Log, prescriptions and alert data in Firestore; the code and preferences on each device; secrets in GitHub and cron-job.org.</div>
+    <div><b>Regenerating this document</b>From the repo root run <code>node docs/overview/shoot.js</code>, then <code>pdf.js</code>. Sample data only.</div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.12 · Document 2.3</span><span>Updated November 12, 2026 · 3</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.13 · Document 2.4</span><span>Updated November 13, 2026 · 3</span></div>
 </section>
 
 </body>
