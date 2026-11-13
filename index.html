@@ -20,6 +20,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script>try{if(localStorage.getItem("yukiRotate")==="false")document.documentElement.dataset.rotate="off";}catch(e){}</script>
 <style>
 /* Home Solar look: white ground, system type, rules between rows instead of cards.
    Graphite is anything you tap. Green means given, red means missed, the four med colours mark the drugs. */
@@ -279,6 +280,34 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 .sw button[aria-checked="true"]{box-shadow:0 0 0 2px var(--sheet),0 0 0 4px var(--c)}
 .note{font-size:13px;color:var(--muted);margin-top:6px;line-height:1.35}
 .tag{font-size:11px;font-weight:600;color:var(--muted);background:var(--sheetwell);border-radius:6px;padding:2px 6px;margin-left:6px;vertical-align:2px}
+
+/* Phone held sideways: rail on the left, Today in two columns. Settings can keep the upright layout instead. */
+@media (orientation: landscape) and (max-height: 520px){
+  :root:not([data-rotate="off"]){--sal:max(12px, env(safe-area-inset-left,0px));--sar:max(16px, env(safe-area-inset-right,0px));--rail:76px}
+  :root:not([data-rotate="off"]) .tabs{top:0;bottom:0;right:auto;width:calc(var(--rail) + var(--sal));grid-template-columns:1fr;grid-auto-rows:min-content;align-content:center;gap:18px;
+    border-top:0;border-right:.5px solid var(--rule);padding:0 0 0 var(--sal)}
+  :root:not([data-rotate="off"]) main{max-width:none;margin:0 0 0 calc(var(--rail) + var(--sal));padding:14px var(--sar) calc(24px + env(safe-area-inset-bottom,0px)) 28px}
+  :root:not([data-rotate="off"]) body[data-tab="today"] #v-today{display:grid;grid-template-columns:230px minmax(0,1fr);column-gap:30px;align-items:start}
+  :root:not([data-rotate="off"]) #v-today>.top,:root:not([data-rotate="off"]) #v-today>.setup,:root:not([data-rotate="off"]) #v-today>.hero,:root:not([data-rotate="off"]) #v-today>.split{grid-column:1}
+  :root:not([data-rotate="off"]) #v-today>.top{grid-row:1} :root:not([data-rotate="off"]) #v-today>.hero{grid-row:2} :root:not([data-rotate="off"]) #v-today>.split{grid-row:3} :root:not([data-rotate="off"]) #v-today>.setup{grid-row:4}
+  :root:not([data-rotate="off"]) #v-today>.section{grid-column:2;grid-row:1 / span 6;margin-top:0}
+  :root:not([data-rotate="off"]) #v-today>.section>.label{margin-top:6px}
+  :root:not([data-rotate="off"]) #v-today h1{font-size:30px}
+  :root:not([data-rotate="off"]) .hero{margin-top:22px} :root:not([data-rotate="off"]) .hero b{font-size:64px}
+  :root:not([data-rotate="off"]) .row{padding:9px 0}
+  :root:not([data-rotate="off"]) #v-print{columns:2;column-gap:30px}
+  :root:not([data-rotate="off"]) #v-print>*{break-inside:avoid}
+  :root:not([data-rotate="off"]) #v-print>.top{column-span:all}
+  :root:not([data-rotate="off"]) .scrim .sheet{max-height:calc(100% - 10px);padding-left:24px;padding-right:24px}
+  :root:not([data-rotate="off"]) #scrim .sheet{max-width:700px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:28px;row-gap:12px;align-content:start}
+  :root:not([data-rotate="off"]) #scrim .grab,:root:not([data-rotate="off"]) #scrim .shead{grid-column:1 / -1}
+  :root:not([data-rotate="off"]) #scrim .sheet>div:nth-of-type(3){grid-column:1;grid-row:3}
+  :root:not([data-rotate="off"]) #scrim .sheet>div:nth-of-type(4){grid-column:2;grid-row:3 / span 3}
+  :root:not([data-rotate="off"]) #scrim #sLog{grid-column:1;grid-row:4;align-self:start}
+  :root:not([data-rotate="off"]) #scrim #sClear{grid-column:1;grid-row:5}
+  :root:not([data-rotate="off"]) #sWho .pick{min-height:40px}
+  :root:not([data-rotate="off"]) .codeval{white-space:nowrap;font-size:15px}
+}
 </style>
 </head>
 <body>
@@ -360,6 +389,11 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
       <div class="label">Sounds</div>
       <div class="list"><div class="lrow"><label for="soundSwitch">Ding when a dose is logged</label><button class="switch" id="soundSwitch" role="switch" aria-checked="true"></button></div></div>
       <p class="sub">One dose each day woofs instead. Sounds follow the phone's silent switch.</p>
+    </div>
+    <div class="section">
+      <div class="label">Screen</div>
+      <div class="list"><div class="lrow"><label for="rotateSwitch">Sideways layout on phones</label><button class="switch" id="rotateSwitch" role="switch" aria-checked="true"></button></div></div>
+      <p class="sub" id="rotateNote"></p>
     </div>
     <div class="section" id="alertsSection" hidden>
       <div class="label">Missed-dose alerts</div>
@@ -613,6 +647,17 @@ function playLogSound(date,key){
   if(!soundsOn()) return;
   try{ (woofSlot(date)===key ? woof : ding)(); }catch(e){}
 }
+function rotateOn(){ return store.get("yukiRotate", true)!==false; }
+function renderRotate(){
+  const on=rotateOn(); $("rotateSwitch").setAttribute("aria-checked", on);
+  if(on) delete document.documentElement.dataset.rotate; else document.documentElement.dataset.rotate="off";
+  $("rotateNote").textContent = on ? "Turn the phone sideways for doses and the count side by side."
+    : "Med Med keeps its upright layout when the phone turns. To stop the screen turning at all on iPhone, use Rotation Lock in Control Centre.";
+  // Android Home Screen apps can lock the screen itself; iPhone and iPad web apps can't.
+  try{ if(screen.orientation&&screen.orientation.lock&&matchMedia("(display-mode: standalone)").matches){ on?screen.orientation.unlock():screen.orientation.lock("portrait").catch(()=>{}); } }catch(e){}
+}
+$("rotateSwitch").onclick=()=>{ store.set("yukiRotate", !rotateOn()); renderRotate(); };
+renderRotate();
 function renderSoundSwitch(){ $("soundSwitch").setAttribute("aria-checked", soundsOn()); }
 $("soundSwitch").onclick=()=>{ const on=!soundsOn(); store.set("yukiSounds", on); renderSoundSwitch(); if(on) ding(); };
 renderSoundSwitch();
