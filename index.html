@@ -76,7 +76,7 @@ h1{margin:0;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-.5px}
 .row .what{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
 .row .slot{font-size:17px;font-weight:600}
 .med{font-size:13px;color:var(--muted);display:flex;align-items:center;gap:6px}
-.med i{width:8px;height:8px;border-radius:2px;background:var(--c);flex:none}
+.med i{width:15px;height:7px;border-radius:7px;flex:none;position:relative;transform:rotate(-45deg);margin:0 2px;background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 30%,var(--bg)) 50%);box-shadow:inset 0 0 0 1px var(--c)}.med i::after{content:"";position:absolute;left:13%;top:19%;width:24%;height:1.5px;border-radius:2px;background:#fff;opacity:.5}
 .row .side{display:flex;flex-direction:column;align-items:flex-end;gap:2px;padding-top:2px;text-align:right}
 .who{font-size:15px;font-weight:600;color:var(--ok);display:flex;align-items:center;gap:4px}
 .who svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
@@ -140,7 +140,7 @@ h1{margin:0;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-.5px}
 .sl{display:flex;justify-content:space-between;align-items:center;padding:0 16px;min-height:46px}
 .sl + .sl{border-top:.5px solid var(--rule)}
 .sl .medn{display:flex;align-items:center;gap:10px;font-weight:600}
-.sl .medn i{width:10px;height:10px;border-radius:3px;background:var(--c)}
+.sl .medn i{width:20px;height:10px;border-radius:10px;flex:none;position:relative;transform:rotate(-45deg);margin:0 2px;background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 30%,var(--bg)) 50%);box-shadow:inset 0 0 0 1px var(--c)}.sl .medn i::after{content:"";position:absolute;left:13%;top:19%;width:24%;height:1.6px;border-radius:2px;background:#fff;opacity:.5}
 .pick{all:unset;cursor:pointer;box-sizing:border-box;width:100%;display:flex;justify-content:space-between;align-items:center;padding:0 16px;min-height:48px}
 .pick + .pick{border-top:.5px solid var(--rule)}
 .pick[aria-checked="true"]{font-weight:600}
@@ -169,7 +169,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .rxrow{all:unset;box-sizing:border-box;cursor:pointer;width:100%;display:flex;align-items:center;gap:12px;padding:10px 16px;min-height:60px}
 .rxrow + .rxrow{border-top:.5px solid var(--rule)}
 .rxrow:focus-visible{outline:2px solid var(--text);outline-offset:-2px}
-.rxrow .sq{width:10px;height:10px;border-radius:3px;background:var(--c);flex:none}
+.rxrow .sq{width:22px;height:11px;border-radius:11px;flex:none;position:relative;transform:rotate(-45deg);margin:0 3px;background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 30%,var(--bg)) 50%);box-shadow:inset 0 0 0 1px var(--c)}.rxrow .sq::after{content:"";position:absolute;left:13%;top:19%;width:24%;height:1.8px;border-radius:2px;background:#fff;opacity:.5}
 .rxrow .nm{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .rxrow .nm b{font-weight:600}
 .rxrow .left{font-size:13px;color:var(--muted)}
@@ -217,7 +217,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
   .snav button:focus-visible{outline:2px solid var(--text);outline-offset:-2px}
   .key{display:flex;flex-direction:column;gap:6px;padding:0 8px}
   .key span.k{font-size:15px;display:flex;align-items:center;gap:8px}
-  .key span.k i{width:9px;height:9px;border-radius:2px;background:var(--c)}
+  .key span.k i{width:18px;height:9px;border-radius:9px;flex:none;position:relative;transform:rotate(-45deg);margin:0 2px;background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 30%,var(--bg)) 50%);box-shadow:inset 0 0 0 1px var(--c)}.key span.k i::after{content:"";position:absolute;left:13%;top:19%;width:24%;height:1.5px;border-radius:2px;background:#fff;opacity:.5}
   .sidesync{margin-top:auto;padding:0 8px;font-size:15px;color:var(--text)}
   main{max-width:none;margin:0 0 0 250px;padding-block:calc(env(safe-area-inset-top,0px) + 36px) 32px;
     padding-left:32px;padding-right:max(32px, env(safe-area-inset-right,0px));

@@ -57,7 +57,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
 .sec p{margin:0;font-size:12px;color:#3A3A3C}
 .meds{display:flex;flex-wrap:wrap;gap:4px 14px;margin-top:4px}
 .meds span{display:inline-flex;align-items:center;gap:6px;font-size:12px}
-.meds i{width:8px;height:8px;border-radius:2px;background:var(--c)}
+.meds i{width:15px;height:7px;border-radius:7px;flex:none;display:inline-block;position:relative;transform:rotate(-45deg);margin:0 2px;background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 30%,var(--bg)) 50%);box-shadow:inset 0 0 0 1px var(--c)}.meds i::after{content:"";position:absolute;left:13%;top:19%;width:24%;height:1.5px;border-radius:2px;background:#fff;opacity:.5}
 
 .tech{border-top:.5px solid var(--rule);padding-top:12px;display:flex;flex-direction:column;gap:6px}
 .tech h2{margin:0;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px}
@@ -107,7 +107,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
       <div class="eyebrow">App overview</div>
       <h1>Med Med</h1>
       <p class="lede">Yuki's heart meds, logged by whoever gives them.</p>
-      <p class="ver">App version 2026.11.12 · Document version 2.2</p>
+      <p class="ver">App version 2026.11.12 · Document version 2.3</p>
     </div>
   </div>
 
@@ -133,7 +133,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
 
   <div class="glance">
     <div><b>5</b><span>doses a day, 8 AM to midnight</span></div>
-    <div><b>4</b><span>meds, each with its own colour</span></div>
+    <div><b>4</b><span>meds, each with its own colour of capsule</span></div>
     <div><b>5</b><span>people on one shared log</span></div>
     <div><b>~20 min</b><span>after a missed dose, everyone is alerted</span></div>
   </div>
@@ -155,7 +155,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.12 · Document 2.2</span><span>Updated November 12, 2026 · 1</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.12 · Document 2.3</span><span>Updated November 12, 2026 · 1</span></div>
 </section>
 
 <section class="page">
@@ -212,14 +212,14 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.12 · Document 2.2</span><span>Updated November 12, 2026 · 2</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.12 · Document 2.3</span><span>Updated November 12, 2026 · 2</span></div>
 </section>
 
 <section class="page tp">
   <div class="head">
     <img src="shots/icon.svg" alt="" style="width:44px;height:44px;border-radius:11px">
     <div>
-      <div class="eyebrow">Med Med · App version 2026.11.12 · Document version 2.2</div>
+      <div class="eyebrow">Med Med · App version 2026.11.12 · Document version 2.3</div>
       <h1 style="font-size:28px">Technical setup</h1>
     </div>
   </div>
@@ -265,7 +265,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     <div><b>Regenerating this document</b>From the repo root run <code>node docs/overview/shoot.js</code>, then <code>node docs/overview/pdf.js</code>. Screenshots use sample doses and made-up names.</div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.12 · Document 2.2</span><span>Updated November 12, 2026 · 3</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.12 · Document 2.3</span><span>Updated November 12, 2026 · 3</span></div>
 </section>
 
 </body>
