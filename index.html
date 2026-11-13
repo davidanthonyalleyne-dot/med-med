@@ -291,6 +291,10 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
   :root:not([data-rotate="off"]) #v-today>.top,:root:not([data-rotate="off"]) #v-today>.setup,:root:not([data-rotate="off"]) #v-today>.hero,:root:not([data-rotate="off"]) #v-today>.split{grid-column:1}
   :root:not([data-rotate="off"]) #v-today>.top{grid-row:1} :root:not([data-rotate="off"]) #v-today>.hero{grid-row:2} :root:not([data-rotate="off"]) #v-today>.split{grid-row:3} :root:not([data-rotate="off"]) #v-today>.setup{grid-row:4}
   :root:not([data-rotate="off"]) #v-today>.section{grid-column:2;grid-row:1 / span 6;margin-top:0}
+  :root:not([data-rotate="off"]) body[data-tab="today"]{overflow:hidden}
+  :root:not([data-rotate="off"]) body[data-tab="today"] main{box-sizing:border-box;height:100vh;height:100dvh;overflow:hidden;padding-bottom:0}
+  :root:not([data-rotate="off"]) #v-today>.section{box-sizing:border-box;max-height:calc(100vh - 14px);max-height:calc(100dvh - 14px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding-bottom:calc(24px + env(safe-area-inset-bottom,0px));scrollbar-width:none}
+  :root:not([data-rotate="off"]) #v-today>.section::-webkit-scrollbar{display:none}
   :root:not([data-rotate="off"]) #v-today>.section>.label{margin-top:6px}
   :root:not([data-rotate="off"]) #v-today h1{font-size:30px}
   :root:not([data-rotate="off"]) .hero{margin-top:22px} :root:not([data-rotate="off"]) .hero b{font-size:64px}
