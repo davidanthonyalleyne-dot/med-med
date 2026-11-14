@@ -31,5 +31,18 @@ service cloud.firestore {
                     && alert.matches('^[0-9]{4}-[0-9]{2}-[0-9]{2}_[a-z]+$')
                     && request.resource.data.keys().hasOnly(['at']);
     }
+
+    // Problem reports from David's apps (script errors, taps that did nothing). No app data.
+    // Apps can only add entries; the collector Action reads and removes them.
+    match /diag/{id} {
+      allow create: if request.auth != null
+                    && request.resource.data.keys().hasOnly(['app', 'at', 'kind', 'msg', 'state', 'crumbs'])
+                    && request.resource.data.app in ['medmed', 'puzzpuzz', 'pk', 'curb', 'emulatordesk', 'solar']
+                    && request.resource.data.kind.size() <= 24
+                    && request.resource.data.msg.size() <= 400
+                    && request.resource.data.state.size() <= 1500
+                    && request.resource.data.crumbs.size() <= 2500;
+      allow read, delete: if request.auth != null;
+    }
   }
 }

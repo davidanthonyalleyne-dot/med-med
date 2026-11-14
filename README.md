@@ -63,3 +63,9 @@ The schedule lives near the top of the script in `index.html`, in the `SLOTS` li
 - `manifest.webmanifest` and `icons/` make it installable with the Med Med icon.
 - `sw.js` shows the alerts on each phone.
 - `scripts/check_missed.py` and `.github/workflows/missed-dose-alerts.yml` are the alert checker.
+
+## Diagnostics for all of David's apps
+
+Med Med, Puzz Puzz, PK, Curb and Emulator Desk each load `diag.js`, which reports problems (script errors, taps that did nothing, taps something else caught) with recent taps and screen details. No doses, names or other app data. Reports land in the `diag` collection of this Firebase project, and the **Collect diagnostics** Action copies them to `data/diag/<app>/` every hour (or when `data/diag/pull.txt` changes).
+
+One-time setup: in the Firebase console open Firestore Database, then **Rules**, paste in the current `firestore.rules` from this repo, and click **Publish**. Until then the apps keep their reports on the phone and send them later.
