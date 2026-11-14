@@ -154,50 +154,93 @@ def main():
     if os.environ.get("NOW"):
         now = dt.datetime.fromisoformat(os.environ["NOW"]).astimezone(TZ)
     candidates = due_doses(now)
-    if not candidates:
-        log(f"{now:%a %H:%M}: no dose is in its alert window")
-        return
 
     api_key, project = firebase_config()
     store = Store(project, household, sign_in(api_key))
 
-    missed = []
+    # Medicines added in the app, and the pet's name.
+    meds, pet = {}, "Yuki"
+    for d in store.list("meds"):
+        key = d["name"].rsplit("/", 1)[1]
+        meds[key] = plain({"mapValue": d})
+    if (meds.get("pet") or {}).get("name"):
+        pet = str(meds["pet"]["name"])[:24]
+    added = {k: m for k, m in meds.items() if m.get("custom") == "yes" and m.get("stopped") != "yes"}
+
+    def dose_text(m):
+        n = float(m.get("dose") or 1)
+        return m.get("strength", "") if n == 1 else f"{n:g} x {m.get('strength') or m.get('form', '')}"
+
+    outgoing = []  # (marker id, log line, payload)
+
+    # 1. Missed doses
     for date, slot, due in candidates:
         doc = store.get(f"days/{date}")
         slots = plain({"mapValue": doc}).get("slots", {}) if doc else {}
-        if slots.get(slot[0]):
+        if slots.get(slot[0]) or store.get(f"alerts/{date}_{slot[0]}"):
             continue
-        if store.get(f"alerts/{date}_{slot[0]}"):
+        key, name, time_label, _, meds_text = slot
+        extra = [f"{m['name']} {dose_text(m)}".strip() for m in added.values() if key in str(m.get("slots", "")).split(",")]
+        if extra:
+            items = meds_text.split(" and ") + extra
+            meds_text = ", ".join(items[:-1]) + " and " + items[-1]
+        outgoing.append((f"{date}_{key}", f"{date} {key}", json.dumps({
+            "title": f"{pet}'s {name} dose isn't logged",
+            "body": f"Due at {time_label}: {meds_text}. Tap to log it if it's been given.",
+            "tag": f"{date}_{key}",
+            "url": "./#today",
+        })))
+
+    # 2. Newly added medicines, announced once (unless the person adding it turned that off)
+    order = [s[0] for s in SLOTS]
+    for key, m in added.items():
+        if m.get("tell") == "no" or not m.get("added"):
             continue
-        missed.append((date, slot, due))
-    if not missed:
-        log(f"{now:%a %H:%M}: every due dose is logged or already alerted")
+        try:
+            at = dt.datetime.fromisoformat(str(m["added"]).replace("Z", "+00:00")).astimezone(TZ)
+        except ValueError:
+            continue
+        if not dt.timedelta(0) <= now - at <= dt.timedelta(hours=48):
+            continue
+        marker = f"{at:%Y-%m-%d}_new{key}"
+        if store.get(f"alerts/{marker}"):
+            continue
+        keys = [k for k in order if k in str(m.get("slots", "")).split(",")]
+        if not keys:
+            continue
+        times = [next(s[2] for s in SLOTS if s[0] == k).replace(":00", "") for k in keys]
+        when = times[0] if len(times) == 1 else ", ".join(times[:-1]) + " and " + times[-1]
+        freq = {1: "once a day", 2: "twice a day", 3: "three times a day"}.get(len(keys), f"{len(keys)} times a day")
+        n = float(m.get("dose") or 1)
+        unit = "ml" if m.get("form") == "ml" else (m.get("form") or "tablet")
+        each = f"{n:g} {unit}{'s' if n > 1 and unit != 'ml' else ''}"
+        body = f"{each} {freq}, at {when}."
+        if m.get("purpose"):
+            body += f" {m['purpose']}"
+        if m.get("addedBy"):
+            body += f" Added by {m['addedBy']}."
+        outgoing.append((marker, f"new med {key}", json.dumps({
+            "title": f"New med for {pet}: {m.get('name', key)} {m.get('strength', '')}".strip(),
+            "body": body,
+            "tag": marker,
+            "url": "./#today",
+        })))
+
+    if not outgoing:
+        log(f"{now:%a %H:%M}: nothing to alert")
         return
 
     subs = [plain({"mapValue": d}) | {"_name": d["name"]} for d in store.list("subs")]
-    log(f"{len(missed)} missed dose(s), {len(subs)} phone(s) signed up for alerts")
+    log(f"{len(outgoing)} alert(s), {len(subs)} phone(s) signed up for alerts")
 
-    pet = "Yuki"
-    try:
-        doc = store.get("meds/pet")
-        if doc and doc.get("fields", {}).get("name", {}).get("stringValue"):
-            pet = doc["fields"]["name"]["stringValue"][:24]
-    except (Exception, SystemExit):
-        pass
     failed = []
-    for date, (key, name, time_label, _, meds), due in missed:
-        payload = json.dumps({
-            "title": f"{pet}'s {name} dose isn't logged",
-            "body": f"Due at {time_label}: {meds}. Tap to log it if it's been given.",
-            "tag": f"{date}_{key}",
-            "url": "./#today",
-        })
+    for marker, label, payload in outgoing:
         if dry_run:
             log(f"[dry run] would alert: {payload}")
             continue
         # Claim the alert first so two overlapping runs can't both send it.
-        if store.create("alerts", f"{date}_{key}", {"at": {"stringValue": now.isoformat()}}) not in (200, 201):
-            log(f"{date} {key}: another run already sent this alert")
+        if store.create("alerts", marker, {"at": {"stringValue": now.isoformat()}}) not in (200, 201):
+            log(f"{label}: another run already sent this alert")
             continue
         sent = 0
         for sub in subs:
@@ -217,9 +260,9 @@ def main():
                     log("Removed a phone that turned alerts off")
                 else:
                     log(f"Push failed ({code}): {e}")
-        log(f"{date} {key}: alerted {sent} phone(s)")
+        log(f"{label}: alerted {sent} phone(s)")
         if subs and not sent:
-            failed.append(f"{date} {key}")
+            failed.append(label)
     if failed:
         # Fail the run so GitHub emails the repo owner instead of failing silently.
         raise SystemExit(f"No phone received the alert for {', '.join(failed)}")

@@ -313,6 +313,17 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
   :root:not([data-rotate="off"]) #sWho .pick{min-height:40px}
   :root:not([data-rotate="off"]) .codeval{white-space:nowrap;font-size:15px}
 }
+
+/* What it's for (VCA Canada) and the new-medicine card */
+.purpose{background:var(--sheetwell);border-radius:12px;padding:12px 14px;font-size:16px;line-height:1.4}
+.purpose small{display:block;color:var(--muted);font-size:13px;margin-top:6px;line-height:1.35}
+.purpose a,.note a{color:var(--text);font-weight:600}
+.newbanner{all:unset;box-sizing:border-box;cursor:pointer;display:flex;gap:12px;align-items:center;width:100%;background:var(--sheetwell);border-radius:14px;padding:12px 8px 12px 14px;margin-top:14px}
+.newbanner .cap{width:26px;height:13px;border-radius:13px;transform:rotate(-45deg);flex:none;background:linear-gradient(90deg,var(--c) 50%,color-mix(in srgb,var(--c) 30%,var(--bg)) 50%);box-shadow:inset 0 0 0 1px var(--c);margin:0 4px}
+.newbanner .tx{flex:1;font-size:15px;line-height:1.35}.newbanner b{font-weight:600}.newbanner .tx span{color:var(--muted);font-size:13px}
+.newbanner .x{all:unset;cursor:pointer;color:var(--muted);font-size:22px;line-height:1;width:36px;height:36px;display:grid;place-items:center;border-radius:18px}
+.newbanner:focus-visible,.newbanner .x:focus-visible{outline:2px solid var(--text)}
+#newCards{display:grid;gap:8px}
 </style>
 </head>
 <body>
@@ -353,6 +364,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
     </div>
     <div class="hero"><b class="num" id="heroN">0</b><span id="heroT">of 5 doses given</span></div>
     <div class="split" id="split"></div>
+    <div id="newCards"></div>
     <div class="section">
       <div class="label">Doses</div>
       <div class="rows" id="rows"></div>
@@ -440,7 +452,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const APP_VERSION = "2026.11.13";
+const APP_VERSION = "2026.11.14";
 const SLOTS = [
   {key:"early",     name:"Early",        short:"8a",  time:"8:00 AM",  h:8,  meds:[["Pimobendan","7.5 mg"],["Diltiazem","60 mg"]]},
   {key:"late",      name:"Late Morning", short:"10a", time:"10:00 AM", h:10, meds:[["Furosemide","40 mg"],["Digoxin","0.0625 mg"]]},
@@ -764,7 +776,14 @@ function drawRx(){
   const l=rxLeftText(m,k), ref=m.refills===""||m.refills==null?null:parseInt(m.refills,10);
   const refLine = ref===null ? "Refills left: not recorded yet." : ref>0 ? `${ref} refill${ref===1?"":"s"} left, so the pharmacy can refill it directly.` : `No refills left. The pharmacy will need a new prescription from ${esc(m.prescriber||"the vet")}.`;
   const row=(k2,v)=>v?`<div class="sl"><span class="k">${k2}</span><span class="v">${v}</span></div>`:"";
+  const pur=purposeFor(m.name), ms=m.custom==="yes"?medSlots(m):[];
   $("rxBody").innerHTML=`<div style="display:grid;gap:16px">
+    ${pur?`<div><div class="label">What it's for</div><div class="purpose">${esc(pur.t)}<small>From VCA Canada's page for dog owners. <a href="${vcaLink(pur)}" target="_blank" rel="noopener">Read more on VCA</a></small></div></div>`:""}
+    ${m.custom==="yes"?`<div><div class="label">Schedule</div><div class="slist rxlist">
+      ${row("Each dose", esc(fmtDoseOf(m)))}
+      ${row("Times", ms.map(k=>{ const sl=SLOTS.find(s=>s.key===k); return `${sl.time} ${sl.name}`; }).join("<br>"))}
+      ${m.added?row("Added", esc(`${new Date(m.added).toLocaleDateString(undefined,{month:"short",day:"numeric"})}${m.addedBy?" by "+m.addedBy:""}`)):""}
+    </div></div>`:""}
     <div class="rxstat"><span class="${l.soon?"soon":""}">${esc(l.t)}</span><br><span style="color:var(--muted)">${refLine}</span></div>
     <div class="rxbtns">
       ${m.pharmacyPhone?`<a class="btnwide dark" href="${telHref(m.pharmacyPhone)}" style="text-decoration:none">Call ${esc((m.pharmacy||"pharmacy").split(" (")[0])}</a>`:""}
@@ -804,12 +823,41 @@ async function saveRx(k,upd,msg){
   catch(e){ toast("Couldn't save that. Check your connection and try again."); }
 }
 let confirmStop=null;
-function openRx(k){ rxOpen=k; rxEditing=false; confirmStop=null; drawRx(); $("rxScrim").hidden=false; }
+function openRx(k){ rxOpen=k; rxEditing=false; confirmStop=null; drawRx(); $("rxScrim").hidden=false; const sh=$("rxScrim").querySelector(".sheet"); if(sh) sh.scrollTop=0; }
 function closeRx(){ $("rxScrim").hidden=true; rxOpen=null; rxEditing=false; }
 $("rxList").addEventListener("click",ev=>{ const b=ev.target.closest(".rxrow"); if(b) openRx(b.dataset.rx); });
 $("rxClose").onclick=closeRx;
 $("rxScrim").addEventListener("click",ev=>{ if(ev.target===$("rxScrim")) closeRx(); });
 document.addEventListener("keydown",ev=>{ if(ev.key==="Escape" && rxOpen) closeRx(); });
+/* What each medicine is for, in dogs. One line each, from VCA Canada's drug pages
+   (written by Lauren R. Forsythe, PharmD, and Rania Gollakner, DVM). Only drugs checked
+   against their page are listed; others show no summary rather than a guess. */
+const PURPOSE={
+  pimobendan:{t:"Treats congestive heart failure by helping the heart squeeze harder and widening blood vessels.",vca:"pimobendan"},
+  diltiazem:{t:"Slows fast heart rhythms such as atrial fibrillation and lowers high blood pressure. Off-label use in dogs.",vca:"diltiazem-hcl"},
+  furosemide:{t:"A diuretic that clears extra fluid, such as fluid in the lungs from congestive heart failure.",vca:"furosemide"},
+  digoxin:{t:"Treats some abnormal heart rhythms and some kinds of heart failure. Off-label use in dogs.",vca:"digoxin"},
+  enalapril:{t:"An ACE inhibitor for heart failure, high blood pressure and some kidney problems. Off-label use in dogs.",vca:"enalapril"},
+};
+function purposeFor(name){ const k=String(name||"").toLowerCase().replace(/[^a-z ]/g,"").trim().split(" ")[0]; return PURPOSE[k]||null; }
+function vcaLink(p){ return `https://vcacanada.com/know-your-pet/${p.vca}`; }
+function timesText(keys){ const t=keys.map(k=>SLOTS.find(s=>s.key===k).time.replace(":00","")); return t.length>1?t.slice(0,-1).join(", ")+" and "+t[t.length-1]:t[0]||""; }
+function freqText(n){ return ["","once a day","twice a day","three times a day","four times a day","five times a day"][n]||`${n} times a day`; }
+function seenNew(){ return store.get("yukiSeenNew",[]); }
+function renderNewCards(){
+  const box=$("newCards"); if(!box) return;
+  const seen=seenNew(), now=Date.now();
+  const list=customKeys().filter(k=>{ const a=Date.parse(rx[k].added||""); return a&&now-a<3*864e5&&!seen.includes(k+"@"+rx[k].added); });
+  box.innerHTML=list.map(k=>{ const m=rx[k], c=MEDCOL[m.name]||"--teal";
+    return `<div class="newbanner" role="button" tabindex="0" data-k="${k}" style="--c:var(${c})"><i class="cap" aria-hidden="true"></i><span class="tx"><b>New: ${esc(m.name)} ${esc(m.strength||"")}</b><br><span>${esc(freqText(medSlots(m).length))[0].toUpperCase()+esc(freqText(medSlots(m).length)).slice(1)}, at ${esc(timesText(medSlots(m)))}.${m.addedBy?` Added by ${esc(m.addedBy)}.`:""}</span></span><button class="x" aria-label="Dismiss" data-x="${k}">×</button></div>`; }).join("");
+  box.querySelectorAll(".newbanner").forEach(el=>{
+    const open=()=>openRx(el.dataset.k);
+    el.onclick=ev=>{ if(ev.target.closest(".x")) return; open(); };
+    el.onkeydown=ev=>{ if(ev.key==="Enter"||ev.key===" "){ ev.preventDefault(); open(); } };
+  });
+  box.querySelectorAll(".x").forEach(b=>b.onclick=ev=>{ ev.stopPropagation(); const k=b.dataset.x; store.set("yukiSeenNew",seenNew().concat(k+"@"+rx[k].added).slice(-30)); renderNewCards(); });
+}
+
 /* ---------- Added medicines and the pet's name ---------- */
 const NEW_COLS=[["teal",[14,124,134],"Teal"],["magenta",[176,40,122],"Magenta"],["olive",[107,127,0],"Olive"],["slate",[74,93,117],"Slate"],["brown",[139,90,43],"Brown"]];
 const FREQ={1:["early"],2:["late","evening"],3:["early","afternoon","bedtime"]};
@@ -824,6 +872,7 @@ function applyMeds(){
   $("petTitle").textContent=pn; document.querySelectorAll(".petName").forEach(e=>e.textContent=pn);
   $("petSection").hidden=!(syncReady&&household);
   const all=[["Pimobendan","--pimo"],["Diltiazem","--dilt"],["Furosemide","--furo"],["Digoxin","--digo"]].concat(customKeys().map(k=>[rx[k].name,MEDCOL[rx[k].name]]));
+  renderNewCards();
   $("medKey").innerHTML='<span class="label">Meds</span>'+all.map(([n,c])=>`<span class="k" style="--c:var(${c})"><i></i>${esc(n)}</span>`).join("");
   render();
 }
@@ -869,8 +918,8 @@ function openAdd(editKey){
   rxOpen="__add"; rxEditing=false;
   const used=Object.values(rx).filter(m=>m&&m.custom==="yes"&&m.stopped!=="yes").map(m=>m.color);
   if(editKey){ const m=rx[editKey]; add={edit:editKey,step:"form",name:m.name,strength:m.strength||"",form:m.form||"tablet",dose:parseFloat(m.dose)||1,slots:medSlots(m),color:m.color,rx:m.rx||"",qty:m.qty||"",refills:m.refills||"",pharmacy:m.pharmacy||"",pharmacyPhone:m.pharmacyPhone||"",directions:m.directions||"",fromLabel:{}}; }
-  else { const free=NEW_COLS.find(c=>!used.includes(c[0])); add={step:"scan",name:"",strength:"",form:"tablet",dose:1,slots:FREQ[2].slice(),color:(free||NEW_COLS[used.length%NEW_COLS.length])[0],rx:"",qty:"",refills:"",pharmacy:"",pharmacyPhone:"",directions:"",fromLabel:{}}; }
-  drawAdd(); $("rxScrim").hidden=false;
+  else { const free=NEW_COLS.find(c=>!used.includes(c[0])); add={by:store.get("yukiLastGiver",PEOPLE[0]),tell:true,step:"scan",name:"",strength:"",form:"tablet",dose:1,slots:FREQ[2].slice(),color:(free||NEW_COLS[used.length%NEW_COLS.length])[0],rx:"",qty:"",refills:"",pharmacy:"",pharmacyPhone:"",directions:"",fromLabel:{}}; }
+  drawAdd(); $("rxScrim").hidden=false; const sh=$("rxScrim").querySelector(".sheet"); if(sh) sh.scrollTop=0;
 }
 function addFreqNote(){
   const n=add.slots.length, times=add.slots.map(k=>SLOTS.find(s=>s.key===k).time.replace(":00","")).join(" and ").replace(/ and (?=.* and )/g,", ");
@@ -914,6 +963,11 @@ function drawAdd(){
     <div><div class="label">Colour</div>
       <div class="sw" role="radiogroup" aria-label="Colour">${NEW_COLS.filter(x=>!used.includes(x[0])||x[0]===add.color).map(x=>`<button type="button" role="radio" aria-label="${x[2]}" data-c="${x[0]}" aria-checked="${x[0]===add.color}" style="--c:var(--${x[0]})"></button>`).join("")}</div>
       <div class="note">${c[2]} isn't used by any other medicine, so it won't be mixed up with ${esc(petName())}'s other meds.</div></div>
+    <div><div class="label">What it's for</div><div id="aPurpose"></div></div>
+    ${add.edit?"":`<div><div class="label">Tell the family</div><div class="slist">
+      <div class="fr"><label for="aBy" style="color:var(--text);font-size:17px;font-weight:400">Added by</label><select id="aBy" style="width:auto;min-height:36px;background:var(--bg)">${PEOPLE.map(n=>`<option${n===add.by?" selected":""}>${esc(n)}</option>`).join("")}</select></div>
+      <div class="fr"><span>Send an alert when it's added</span><button class="switch" type="button" id="aTell" role="switch" aria-checked="${add.tell!==false}"></button></div></div>
+      <div class="note">Everyone with alerts on gets the name, dose, times and what it's for. It can take up to 10 minutes.</div></div>`}
     <div><div class="label">Prescription</div><div class="addf" style="gap:10px;margin-top:6px">
       <div class="grid2"><label><span>Rx number ${tag("rx")}</span><input id="aRx" value="${esc(add.rx)}" inputmode="numeric" autocomplete="off"></label>
       <label><span>Quantity ${tag("qty")}</span><input id="aQty" value="${esc(add.qty)}" inputmode="numeric"></label></div>
@@ -927,7 +981,10 @@ function drawAdd(){
   </form>`;
   $("aForm").value=add.form;
   const sync=()=>{ add.name=$("aName").value.trim(); add.strength=$("aStr").value.trim(); add.form=$("aForm").value; add.rx=$("aRx").value.trim(); add.qty=$("aQty").value.trim(); add.refills=$("aRef").value.trim(); add.pharmacy=$("aPh").value.trim(); add.pharmacyPhone=$("aPhNo").value.trim(); add.directions=$("aDir").value.trim(); };
-  const head=()=>{ sync(); $("addHead").textContent=`${add.name||"New medicine"} ${add.strength}`; $("aSave").textContent=add.edit?"Save changes":`Add ${add.name||"it"} to the schedule`; };
+  const purp=()=>{ const pu=purposeFor(add.name); $("aPurpose").innerHTML=pu?`<div class="purpose" style="margin-top:6px">${esc(pu.t)}<small>From VCA Canada's page for dog owners. <a href="${vcaLink(pu)}" target="_blank" rel="noopener">Read more on VCA</a></small></div>`:`<div class="note">${add.name?`Med Med doesn't have a dog-specific summary for ${esc(add.name)} yet, so this part is left out.`:"Shows once the name is filled in, for medicines with a VCA Canada page for dog owners."}</div>`; };
+  if($("aTell")) $("aTell").onclick=()=>{ add.tell=add.tell===false; $("aTell").setAttribute("aria-checked",add.tell!==false); };
+  if($("aBy")) $("aBy").onchange=()=>{ add.by=$("aBy").value; };
+  const head=()=>{ sync(); purp(); $("addHead").textContent=`${add.name||"New medicine"} ${add.strength}`; $("aSave").textContent=add.edit?"Save changes":`Add ${add.name||"it"} to the schedule`; };
   ["aName","aStr"].forEach(id=>$(id).addEventListener("input",head)); head();
   $("aForm").onchange=()=>{ sync(); $("aDose").textContent=fmtDose(); };
   $("aMinus").onclick=()=>{ add.dose=Math.max(.5,add.dose-.5); $("aDose").textContent=fmtDose(); };
@@ -938,6 +995,7 @@ function drawAdd(){
   if($("aRescan")) $("aRescan").onclick=()=>{ add.step="scan"; add.preview=null; drawAdd(); };
   $("addForm").addEventListener("submit",ev=>{ ev.preventDefault(); sync(); saveAdd(); });
 }
+function fmtDoseOf(m){ const n=parseFloat(m.dose)||1, u=m.form==="ml"?"ml":(m.form||"tablet"); return `${n===.5?"½":String(n).replace(".5","½")} ${u}${n>1&&u!=="ml"?"s":""}${m.strength?", "+m.strength:""}`; }
 function fmtDose(){ const u=add.form==="ml"?"ml":add.form; const n=add.dose; return `${n===.5?"½":String(n).replace(".5","½")} ${u}${n>1&&u!=="ml"?"s":""}`; }
 async function readLabel(file){
   add.step="reading"; add.preview=URL.createObjectURL(file); drawAdd();
@@ -960,7 +1018,8 @@ async function saveAdd(){
   if(!add.edit&&(RX_ORDER.includes(key)||(rx[key]&&rx[key].custom==="yes"&&rx[key].stopped!=="yes"))){ toast(`${add.name} is already on the list`); return; }
   const doc={name:add.name,strength:add.strength,form:add.form,dose:String(add.dose),slots:add.slots.join(","),color:add.color,custom:"yes",stopped:"",
     rx:add.rx,qty:add.qty,refills:add.refills,pharmacy:add.pharmacy,pharmacyPhone:add.pharmacyPhone,directions:add.directions};
-  if(!add.edit){ doc.filled=ymd(doseDay()); doc.added=new Date().toISOString(); }
+  if(!add.edit){ doc.filled=ymd(doseDay()); doc.added=new Date().toISOString(); doc.addedBy=add.by||store.get("yukiLastGiver",PEOPLE[0]);
+    const pu=purposeFor(add.name); if(pu) doc.purpose=pu.t; if(add.tell===false) doc.tell="no"; }
   const msg=add.edit?`${add.name} updated`:`${add.name} added to ${petName()}'s schedule`;
   closeRx(); await saveRx(key,doc,msg); applyMeds();
 }

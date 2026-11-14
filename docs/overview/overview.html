@@ -107,7 +107,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
       <div class="eyebrow">App overview</div>
       <h1>Med Med</h1>
       <p class="lede">Yuki's heart meds, logged by whoever gives them.</p>
-      <p class="ver">App version 2026.11.13 · Document version 2.5</p>
+      <p class="ver">App version 2026.11.14 · Document version 2.6</p>
     </div>
   </div>
 
@@ -155,7 +155,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.13 · Document 2.5</span><span>Updated November 13, 2026 · 1</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.14 · Document 2.6</span><span>Updated November 14, 2026 · 1</span></div>
 </section>
 
 <section class="page">
@@ -183,8 +183,8 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
       <p>One log shared through a private household code. Others join with the invite link or the code, and a dose logged on one phone shows on the rest within seconds. Renaming the pet in Settings changes it for everyone.</p>
     </div>
     <div class="sec">
-      <h2>Missed-dose alerts</h2>
-      <p>About 20 minutes after an unlogged dose, every phone with alerts on gets one notification. On iPhone and iPad they work from the Home Screen icon, switched on in Settings.</p>
+      <h2>Alerts</h2>
+      <p>Phones with alerts on hear about a dose not logged within 20 minutes, and about each new medicine: its dose, times and what it's for. On iPhone they work from the Home Screen icon.</p>
     </div>
     <div class="sec">
       <h2>Sounds</h2>
@@ -196,7 +196,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
     <div class="sec">
       <h2>Prescriptions and refills</h2>
-      <p>Each medicine keeps its Rx number, pharmacy, quantity, refills left and last fill. Days left turn red at ten. A new medicine is added by photographing its label, read on the phone, then joins Today, the sheets and refills.</p>
+      <p>Each medicine shows what it's for in dogs, from VCA Canada, then its Rx number, pharmacy, refills and days left, red at ten. A new one is added by photographing its label and joins Today, the sheets and refills.</p>
     </div>
     <div class="sec">
       <h2>Paper sheets</h2>
@@ -212,14 +212,14 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     </div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.13 · Document 2.5</span><span>Updated November 13, 2026 · 2</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.14 · Document 2.6</span><span>Updated November 14, 2026 · 2</span></div>
 </section>
 
 <section class="page tp">
   <div class="head">
     <img src="shots/icon.svg" alt="" style="width:44px;height:44px;border-radius:11px">
     <div>
-      <div class="eyebrow">Med Med · App version 2026.11.13 · Document version 2.5</div>
+      <div class="eyebrow">Med Med · App version 2026.11.14 · Document version 2.6</div>
       <h1 style="font-size:28px">Technical setup</h1>
     </div>
   </div>
@@ -229,7 +229,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
   </div>
   <div class="tblwrap"><table class="tbl">
     <tr><th>Source</th><th>Version</th><th>What it does</th><th>Loaded from</th><th>Licence</th></tr>
-    <tr><td>Med Med code</td><td>2026.11.13</td><td>App, service worker, icons and alert checker</td><td><code>index.html</code>, <code>sw.js</code>, <code>icons/</code>, <code>scripts/</code></td><td>Own</td></tr>
+    <tr><td>Med Med code</td><td>2026.11.14</td><td>App, service worker, icons and alert checker</td><td><code>index.html</code>, <code>sw.js</code>, <code>icons/</code>, <code>scripts/</code></td><td>Own</td></tr>
     <tr><td>Firebase JS SDK</td><td>10.12.2</td><td>Anonymous sign-in and Firestore with offline cache</td><td><code>www.gstatic.com/firebasejs</code></td><td>Apache&nbsp;2.0</td></tr>
     <tr><td>jsPDF</td><td>2.5.1</td><td>Draws the blank monthly sheets on the device</td><td><code>cdnjs.cloudflare.com</code></td><td>MIT</td></tr>
     <tr><td>Tesseract.js</td><td>5.1.1</td><td>Reads label photos on the phone when scanning</td><td><code>cdn.jsdelivr.net</code></td><td>Apache&nbsp;2.0</td></tr>
@@ -244,13 +244,14 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
   </div>
   <div class="tblwrap"><table class="tbl">
     <tr><th>Service</th><th>Used for</th><th>Details</th></tr>
-    <tr><td>Firebase Firestore</td><td>The shared dose log</td><td>Free plan, Toronto. Under <code>households/&lt;code&gt;</code>: <code>days</code> (doses), <code>meds</code> (prescriptions, added medicines, pet's name), <code>subs</code> (push addresses), <code>alerts</code>. Rules check every write.</td></tr>
-    <tr><td>Firebase Auth</td><td>Access to the log</td><td>Anonymous sign-in, no accounts. Access also needs the household code.</td></tr>
+    <tr><td>Firebase Firestore</td><td>Dose log</td><td>Free plan, Toronto. Under <code>households/&lt;code&gt;</code>: <code>days</code> (doses), <code>meds</code> (prescriptions, added medicines, pet's name), <code>subs</code> (push addresses), <code>alerts</code>. Rules check every write.</td></tr>
+    <tr><td>Firebase Auth</td><td>Sign-in</td><td>Anonymous sign-in, no accounts. Access also needs the household code.</td></tr>
+    <tr><td>VCA Canada</td><td>Med info</td><td>Links to <code>vcacanada.com/know-your-pet</code>; summaries written from those pages.</td></tr>
     <tr><td>GitHub Pages</td><td>Hosting</td><td>Serves the public <code>med-med</code> repo as a static site.</td></tr>
-    <tr><td>GitHub Actions</td><td>Alert checker</td><td><code>missed-dose-alerts.yml</code> reads Firestore over REST. Secrets <code>HOUSEHOLD_CODE</code> and <code>VAPID_PRIVATE_KEY</code> live in Actions secrets.</td></tr>
-    <tr><td>cron-job.org</td><td>Starting the checker</td><td>"Med Med alerts" POSTs to GitHub's workflow-dispatch API every 10 minutes with a token that can only start Actions on this repo.</td></tr>
-    <tr><td>Web Push</td><td>Missed-dose alerts</td><td>Apple's or Google's push service. Messages are encrypted, signed with a VAPID key, and carry only the dose name, time and meds.</td></tr>
-    <tr><td>Browser features</td><td>On each device</td><td>Local storage, the camera or photo picker for labels, Web Audio for the ding and woof, service worker, Push and Notifications, clipboard and share sheet, web manifest for Home Screen install.</td></tr>
+    <tr><td>GitHub Actions</td><td>Alert checker</td><td><code>missed-dose-alerts.yml</code> reads Firestore and sends alerts. Secrets <code>HOUSEHOLD_CODE</code>, <code>VAPID_PRIVATE_KEY</code>.</td></tr>
+    <tr><td>cron-job.org</td><td>Timer</td><td>"Med Med alerts" POSTs to GitHub's workflow-dispatch API every 10 minutes with a token that can only start Actions on this repo.</td></tr>
+    <tr><td>Web Push</td><td>Alerts</td><td>Apple's or Google's push service. Encrypted with a VAPID key; carries only the alert text.</td></tr>
+    <tr><td>Browser features</td><td>Device</td><td>Local storage, the camera or photo picker for labels, Web Audio for the ding and woof, service worker, Push and Notifications, clipboard and share sheet, web manifest for Home Screen install.</td></tr>
   </table></div>
 
   <div>
@@ -263,7 +264,7 @@ h1{margin:0;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.5px
     <div><b>Regenerating this document</b>From the repo root run <code>node docs/overview/shoot.js</code>, then <code>pdf.js</code>. Sample data only.</div>
   </div>
 
-  <div class="foot"><span>Med Med · App 2026.11.13 · Document 2.5</span><span>Updated November 13, 2026 · 3</span></div>
+  <div class="foot"><span>Med Med · App 2026.11.14 · Document 2.6</span><span>Updated November 14, 2026 · 3</span></div>
 </section>
 
 </body>
