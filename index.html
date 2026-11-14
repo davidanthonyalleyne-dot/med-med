@@ -778,7 +778,7 @@ function drawRx(){
   const row=(k2,v)=>v?`<div class="sl"><span class="k">${k2}</span><span class="v">${v}</span></div>`:"";
   const pur=purposeFor(m.name), ms=m.custom==="yes"?medSlots(m):[];
   $("rxBody").innerHTML=`<div style="display:grid;gap:16px">
-    ${pur?`<div><div class="label">What it's for</div><div class="purpose">${esc(pur.t)}<small>From VCA Canada's page for dog owners. <a href="${vcaLink(pur)}" target="_blank" rel="noopener">Read more on VCA</a></small></div></div>`:""}
+    ${pur?`<div><div class="label">What it's for</div><div class="purpose">${esc(pur.t)}<small>From VCA's page for dog owners. <a href="${vcaLink(pur)}" target="_blank" rel="noopener">Read more on VCA</a></small></div></div>`:""}
     ${m.custom==="yes"?`<div><div class="label">Schedule</div><div class="slist rxlist">
       ${row("Each dose", esc(fmtDoseOf(m)))}
       ${row("Times", ms.map(k=>{ const sl=SLOTS.find(s=>s.key===k); return `${sl.time} ${sl.name}`; }).join("<br>"))}
@@ -838,9 +838,11 @@ const PURPOSE={
   furosemide:{t:"A diuretic that clears extra fluid, such as fluid in the lungs from congestive heart failure.",vca:"furosemide"},
   digoxin:{t:"Treats some abnormal heart rhythms and some kinds of heart failure. Off-label use in dogs.",vca:"digoxin"},
   enalapril:{t:"An ACE inhibitor for heart failure, high blood pressure and some kidney problems. Off-label use in dogs.",vca:"enalapril"},
+  optimmune:{t:"An eye ointment that calms the immune system, mainly to treat dry eye. Other eye uses are off-label.",url:"https://vcahospitals.com/know-your-pet/cyclosporine-ophthalmic"},
+  cyclosporine:{t:"As an eye ointment (Optimmune), calms the immune system, mainly to treat dry eye. Other eye uses are off-label.",url:"https://vcahospitals.com/know-your-pet/cyclosporine-ophthalmic"},
 };
 function purposeFor(name){ const k=String(name||"").toLowerCase().replace(/[^a-z ]/g,"").trim().split(" ")[0]; return PURPOSE[k]||null; }
-function vcaLink(p){ return `https://vcacanada.com/know-your-pet/${p.vca}`; }
+function vcaLink(p){ return p.url||`https://vcacanada.com/know-your-pet/${p.vca}`; }
 function timesText(keys){ const t=keys.map(k=>SLOTS.find(s=>s.key===k).time.replace(":00","")); return t.length>1?t.slice(0,-1).join(", ")+" and "+t[t.length-1]:t[0]||""; }
 function freqText(n){ return ["","once a day","twice a day","three times a day","four times a day","five times a day"][n]||`${n} times a day`; }
 function seenNew(){ return store.get("yukiSeenNew",[]); }
@@ -981,7 +983,7 @@ function drawAdd(){
   </form>`;
   $("aForm").value=add.form;
   const sync=()=>{ add.name=$("aName").value.trim(); add.strength=$("aStr").value.trim(); add.form=$("aForm").value; add.rx=$("aRx").value.trim(); add.qty=$("aQty").value.trim(); add.refills=$("aRef").value.trim(); add.pharmacy=$("aPh").value.trim(); add.pharmacyPhone=$("aPhNo").value.trim(); add.directions=$("aDir").value.trim(); };
-  const purp=()=>{ const pu=purposeFor(add.name); $("aPurpose").innerHTML=pu?`<div class="purpose" style="margin-top:6px">${esc(pu.t)}<small>From VCA Canada's page for dog owners. <a href="${vcaLink(pu)}" target="_blank" rel="noopener">Read more on VCA</a></small></div>`:`<div class="note">${add.name?`Med Med doesn't have a dog-specific summary for ${esc(add.name)} yet, so this part is left out.`:"Shows once the name is filled in, for medicines with a VCA Canada page for dog owners."}</div>`; };
+  const purp=()=>{ const pu=purposeFor(add.name); $("aPurpose").innerHTML=pu?`<div class="purpose" style="margin-top:6px">${esc(pu.t)}<small>From VCA's page for dog owners. <a href="${vcaLink(pu)}" target="_blank" rel="noopener">Read more on VCA</a></small></div>`:`<div class="note">${add.name?`Med Med doesn't have a dog-specific summary for ${esc(add.name)} yet, so this part is left out.`:"Shows once the name is filled in, for medicines with a VCA Canada page for dog owners."}</div>`; };
   if($("aTell")) $("aTell").onclick=()=>{ add.tell=add.tell===false; $("aTell").setAttribute("aria-checked",add.tell!==false); };
   if($("aBy")) $("aBy").onchange=()=>{ add.by=$("aBy").value; };
   const head=()=>{ sync(); purp(); $("addHead").textContent=`${add.name||"New medicine"} ${add.strength}`; $("aSave").textContent=add.edit?"Save changes":`Add ${add.name||"it"} to the schedule`; };
