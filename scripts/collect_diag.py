@@ -44,6 +44,9 @@ def main():
     got, page = 0, ""
     while True:
         status, res = http("GET", f"{base}?pageSize=300" + (f"&pageToken={page}" if page else ""), token=token)
+        if status == 403:
+            log("Firestore refused the read. Publish the current firestore.rules in the Firebase console.")
+            return
         if status != 200:
             raise SystemExit(f"Reading diag failed: {status} {res}")
         for doc in res.get("documents", []):
