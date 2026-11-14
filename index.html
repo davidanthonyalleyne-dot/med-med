@@ -324,6 +324,16 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 .newbanner .x{all:unset;cursor:pointer;color:var(--muted);font-size:22px;line-height:1;width:36px;height:36px;display:grid;place-items:center;border-radius:18px}
 .newbanner:focus-visible,.newbanner .x:focus-visible{outline:2px solid var(--text)}
 #newCards{display:grid;gap:8px}
+
+/* Small alerts indicator at the top of Today: green dot and bell when this phone gets alerts */
+#v-today{position:relative}
+.alertTag{all:unset;cursor:pointer;position:absolute;top:2px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:5px;background:var(--sheetwell);border-radius:10px;padding:3px 8px 3px 7px;color:var(--muted);z-index:2}
+.alertTag[hidden]{display:none}
+.alertTag i{width:7px;height:7px;border-radius:4px;background:var(--faint)}
+.alertTag.on i{background:#34c759}
+.alertTag svg{width:11px;height:11px}
+.alertTag:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.alertTag::before{content:"";position:absolute;inset:-12px -8px}
 </style>
 </head>
 <body>
@@ -342,6 +352,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 </aside>
 <main>
   <section id="v-today">
+    <button class="alertTag" id="alertTag" hidden><i aria-hidden="true"></i><svg viewBox="0 0 24 24" aria-hidden="true"></svg></button>
     <div class="top">
       <div><div class="eyebrow" id="dayEyebrow"></div><h1 id="petTitle">Yuki</h1></div>
       <div class="navs">
@@ -1166,16 +1177,26 @@ async function currentSub(){
   const reg=await navigator.serviceWorker.getRegistration();
   return reg ? reg.pushManager.getSubscription() : null;
 }
+function alertTag(on, show){
+  const t=$("alertTag"); if(!t) return;
+  t.hidden=!show; if(!show) return;
+  t.classList.toggle("on",on);
+  t.querySelector("svg").innerHTML=on?'<path d="M12 2.5a6 6 0 0 0-6 6v3.6l-1.6 3a1 1 0 0 0 .9 1.4h13.4a1 1 0 0 0 .9-1.4l-1.6-3V8.5a6 6 0 0 0-6-6z" fill="currentColor"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0z" fill="currentColor"/>':'<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.5a6 6 0 0 1 9.6-4.8M18 10v2.1l1.6 3a1 1 0 0 1-.9 1.4H7"/><path d="M9.5 19.5a2.5 2.5 0 0 0 5 0"/><path d="M3 3l18 18"/></g>';
+  t.setAttribute("aria-label", on?"Alerts are on for this phone. Open alert settings":"Alerts are off for this phone. Open alert settings");
+  t.title=on?"Alerts on":"Alerts off";
+}
+$("alertTag").onclick=()=>{ const b=document.querySelector('.tabs [data-tab="print"]')||document.querySelector('[data-tab="print"]'); if(b) b.click(); setTimeout(()=>$("alertsSection").scrollIntoView({block:"center",behavior:"smooth"}),80); };
 async function renderAlerts(){
   const sec=$("alertsSection"), box=$("alerts"), note=$("alertsNote");
   sec.hidden = !(syncReady && household);
-  if(sec.hidden) return;
+  if(sec.hidden){ alertTag(false,false); return; }
   note.textContent="Notifies everyone if a dose isn't logged within 20 minutes.";
   let reason="", on=false;
   if(isIOS && !isStandalone) reason="Open Med Med from your Home Screen to use alerts";
   else if(!pushSupported) reason="This browser can't show alerts";
   else if(Notification.permission==="denied") reason=isIOS?"Allow in Settings, Notifications, Med Med":"Allow notifications in browser settings";
   else on = !!(await currentSub()) && store.get("yukiAlerts", false);
+  alertTag(on, true);
   box.innerHTML=`<div class="lrow"><label for="alertsSwitch" style="display:flex;flex-direction:column">Alerts on this device${reason?`<span class="at">${reason}</span>`:""}</label>
     <button class="switch" id="alertsSwitch" role="switch" aria-checked="${on}" ${reason?"disabled":""}></button></div>`;
   const sw=$("alertsSwitch");
