@@ -684,7 +684,7 @@ function renderRotate(){
   // Android Home Screen apps can lock the screen itself; iPhone and iPad web apps can't.
   try{ if(screen.orientation&&screen.orientation.lock&&matchMedia("(display-mode: standalone)").matches){ on?screen.orientation.unlock():screen.orientation.lock("portrait").catch(()=>{}); } }catch(e){}
 }
-$("rotateSwitch").onclick=()=>{ store.set("yukiRotate", !rotateOn()); renderRotate(); };
+$("rotateSwitch").onclick=()=>{ store.set("yukiRotate", !rotateOn()); renderRotate(); requestAnimationFrame(placeAlertTag); };
 renderRotate();
 function renderSoundSwitch(){ $("soundSwitch").setAttribute("aria-checked", soundsOn()); }
 $("soundSwitch").onclick=()=>{ const on=!soundsOn(); store.set("yukiSounds", on); renderSoundSwitch(); if(on) ding(); };
@@ -1177,11 +1177,20 @@ async function currentSub(){
   const reg=await navigator.serviceWorker.getRegistration();
   return reg ? reg.pushManager.getSubscription() : null;
 }
+// Lines the bell up with the pet's name, centred across the page.
+function placeAlertTag(){ const t=$("alertTag"), h=$("petTitle"); if(!t||!h||t.hidden) return; const r=h.getBoundingClientRect(), p=$("v-today").getBoundingClientRect(); if(!r.height) return; t.style.top=Math.round(r.top-p.top+r.height/2-14)+"px";
+  // Phone held sideways: the page centre falls in the dose list, so sit between the name and the day buttons.
+  const side=document.documentElement.dataset.rotate!=="off"&&matchMedia("(orientation: landscape) and (max-height: 520px)").matches;
+  if(side){ const n=document.querySelector("#v-today .navs").getBoundingClientRect(); const rg=document.createRange(); rg.selectNodeContents(h); const nr=rg.getBoundingClientRect().right; t.style.left=Math.round((nr+n.left)/2-p.left)+"px"; } else t.style.left=""; }
+addEventListener("resize",()=>requestAnimationFrame(placeAlertTag));
+new MutationObserver(()=>requestAnimationFrame(placeAlertTag)).observe(document.body,{attributes:true,attributeFilter:["data-tab"]});
 function alertTag(on, show){
   const t=$("alertTag"); if(!t) return;
   t.hidden=!show; if(!show) return;
   t.classList.toggle("on",on);
-  t.querySelector("svg").innerHTML=on?'<path d="M12 2.5a6 6 0 0 0-6 6v3.6l-1.6 3a1 1 0 0 0 .9 1.4h13.4a1 1 0 0 0 .9-1.4l-1.6-3V8.5a6 6 0 0 0-6-6z" fill="currentColor"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0z" fill="currentColor"/>':'<g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8.5a6 6 0 0 1 9.6-4.8M18 10v2.1l1.6 3a1 1 0 0 1-.9 1.4H7"/><path d="M9.5 19.5a2.5 2.5 0 0 0 5 0"/><path d="M3 3l18 18"/></g>';
+  t.querySelector("svg").innerHTML=on?'<path d="M12 2.5a6 6 0 0 0-6 6v3.6l-1.6 3a1 1 0 0 0 .9 1.4h13.4a1 1 0 0 0 .9-1.4l-1.6-3V8.5a6 6 0 0 0-6-6z" fill="currentColor"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0z" fill="currentColor"/>'
+    :'<defs><mask id="bellCut"><rect width="24" height="24" fill="#fff"/><path d="M3.5 3.5l17 17" stroke="#000" stroke-width="4.5" stroke-linecap="round"/></mask></defs><g mask="url(#bellCut)"><path d="M12 2.5a6 6 0 0 0-6 6v3.6l-1.6 3a1 1 0 0 0 .9 1.4h13.4a1 1 0 0 0 .9-1.4l-1.6-3V8.5a6 6 0 0 0-6-6z" fill="currentColor"/><path d="M9.5 18.5a2.5 2.5 0 0 0 5 0z" fill="currentColor"/></g><path d="M4 4l16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>';
+  placeAlertTag();
   t.setAttribute("aria-label", on?"Alerts are on for this phone. Open alert settings":"Alerts are off for this phone. Open alert settings");
   t.title=on?"Alerts on":"Alerts off";
 }
