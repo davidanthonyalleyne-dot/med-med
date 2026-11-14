@@ -325,15 +325,15 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 .newbanner:focus-visible,.newbanner .x:focus-visible{outline:2px solid var(--text)}
 #newCards{display:grid;gap:8px}
 
-/* Small alerts indicator at the top of Today: green dot and bell when this phone gets alerts */
+/* Alerts indicator at the top of Today: a green bell when this phone gets alerts, grey and crossed out when not */
 #v-today{position:relative}
-.alertTag{all:unset;cursor:pointer;position:absolute;top:2px;left:50%;transform:translateX(-50%);display:inline-flex;align-items:center;gap:5px;background:var(--sheetwell);border-radius:10px;padding:3px 8px 3px 7px;color:var(--muted);z-index:2}
+.alertTag{all:unset;cursor:pointer;position:absolute;top:0;left:50%;transform:translateX(-50%);display:grid;place-items:center;width:28px;height:28px;border-radius:14px;color:var(--faint);z-index:2}
 .alertTag[hidden]{display:none}
-.alertTag i{width:7px;height:7px;border-radius:4px;background:var(--faint)}
-.alertTag.on i{background:#34c759}
-.alertTag svg{width:11px;height:11px}
-.alertTag:focus-visible{outline:2px solid var(--text);outline-offset:2px}
-.alertTag::before{content:"";position:absolute;inset:-12px -8px}
+.alertTag i{display:none}
+.alertTag.on{color:var(--ok)}
+.alertTag svg{width:19px;height:19px}
+.alertTag:focus-visible{outline:2px solid var(--text);outline-offset:1px}
+.alertTag::before{content:"";position:absolute;inset:-8px}
 </style>
 </head>
 <body>
