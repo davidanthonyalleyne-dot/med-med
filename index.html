@@ -334,6 +334,19 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 .alertTag svg{width:19px;height:19px}
 .alertTag:focus-visible{outline:2px solid var(--text);outline-offset:1px}
 .alertTag::before{content:"";position:absolute;inset:-8px}
+
+/* Eye medicines show an eye in the med's colour instead of a capsule */
+.eye{transform:none!important;background:var(--c)!important;box-shadow:none!important;border-radius:0!important;-webkit-mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2016%22%3E%3Cpath%20d%3D%22M1.6%208C4.6%203.2%208%201.2%2012%201.2s7.4%202%2010.4%206.8c-3%204.8-6.4%206.8-10.4%206.8S4.6%2012.8%201.6%208z%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.2%22%20stroke-linejoin%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%228%22%20r%3D%223.7%22%20fill%3D%22%23000%22/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%2024%2016%22%3E%3Cpath%20d%3D%22M1.6%208C4.6%203.2%208%201.2%2012%201.2s7.4%202%2010.4%206.8c-3%204.8-6.4%206.8-10.4%206.8S4.6%2012.8%201.6%208z%22%20fill%3D%22none%22%20stroke%3D%22%23000%22%20stroke-width%3D%222.2%22%20stroke-linejoin%3D%22round%22/%3E%3Ccircle%20cx%3D%2212%22%20cy%3D%228%22%20r%3D%223.7%22%20fill%3D%22%23000%22/%3E%3C/svg%3E") center/contain no-repeat}
+.eye::after{display:none!important}
+.med i.eye{width:17px;height:11px;margin:0 1px}
+.sl .medn i.eye{width:21px;height:14px;margin:0 2px}
+.key span.k i.eye{width:19px;height:12px;margin:0 2px}
+.rxrow .sq.eye{width:24px;height:16px;margin:0 2px}
+.nm2 .big.eye{width:32px;height:21px;margin:0 2px}
+.newbanner .cap.eye{width:28px;height:18px;margin:0 3px}
+
+#sMeds .sl{gap:12px}
+#sMeds .num{text-align:right}
 </style>
 </head>
 <body>
@@ -463,7 +476,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const APP_VERSION = "2026.11.14";
+const APP_VERSION = "2026.11.17";
 const SLOTS = [
   {key:"early",     name:"Early",        short:"8a",  time:"8:00 AM",  h:8,  meds:[["Pimobendan","7.5 mg"],["Diltiazem","60 mg"]]},
   {key:"late",      name:"Late Morning", short:"10a", time:"10:00 AM", h:10, meds:[["Furosemide","40 mg"],["Digoxin","0.0625 mg"]]},
@@ -509,7 +522,8 @@ function status(date,key,h){
   return "later";
 }
 function inText(h){ const d=h-nowHour(); if(d<1) return `In ${Math.max(1,Math.round(d*60))} min`; return `In ${Math.round(d)} hr`; }
-const medHTML = ([a,b]) => `<span class="med" style="--c:var(${MEDCOL[a]})"><i></i>${a} ${b}</span>`;
+const MEDFORM={};
+const medHTML = ([a,b]) => `<span class="med" style="--c:var(${MEDCOL[a]})"><i class="${isEye(MEDFORM[a])?"eye":""}"></i>${a} ${b}</span>`;
 
 /* ---------- Today ---------- */
 function renderToday(){
@@ -583,7 +597,7 @@ function openSheet(key){
   sheet={key, pick: e ? (e.by||"") : store.get("yukiLastGiver","")};
   $("sTitle").textContent=s.name;
   $("sTime").textContent=s.time;
-  $("sMeds").innerHTML=slotMeds(s).map(([a,b])=>`<div class="sl"><span class="medn" style="--c:var(${MEDCOL[a]})"><i></i>${a}</span><span class="num" style="color:var(--muted)">${b}</span></div>`).join("");
+  $("sMeds").innerHTML=slotMeds(s).map(([a,b])=>`<div class="sl"><span class="medn" style="--c:var(${MEDCOL[a]})"><i class="${isEye(MEDFORM[a])?"eye":""}"></i>${a}</span><span class="num" style="color:var(--muted)">${b}</span></div>`).join("");
   $("sClear").hidden=!e;
   drawPicks();
   $("scrim").hidden=false;
@@ -735,6 +749,7 @@ const RX_COL={pimobendan:"--pimo",diltiazem:"--dilt",furosemide:"--furo",digoxin
 let rx={}, rxUnsub=null, rxOpen=null, rxEditing=false;
 function perDay(key){ const m=rx[key]; if(m&&m.custom==="yes") return medSlots(m).length*(parseFloat(m.dose)||1); return SLOTS.filter(s=>s.meds.some(([n])=>n.toLowerCase().startsWith(key))).length; }
 function rxSupply(m,key){
+  if(m&&m.custom==="yes"&&(isEye(m.form)||m.form==="ml")) return null;
   const q=parseFloat(m.qty), f=m.filled&&/^\d{4}-\d{2}-\d{2}$/.test(m.filled)?parse(m.filled):null, pd=perDay(key);
   if(!q||!f||!pd) return null;
   const out=new Date(f); out.setDate(out.getDate()+Math.floor(q/pd));
@@ -743,6 +758,8 @@ function rxSupply(m,key){
 }
 const fmtDay=d=>d.toLocaleDateString(undefined,{month:"short",day:"numeric"});
 function rxLeftText(m,key){
+  // Tubes, bottles of drops and liquids can't be counted in doses, so show the last fill instead.
+  if(m&&m.custom==="yes"&&(isEye(m.form)||m.form==="ml")) return {t:m.filled?`Last filled ${fmtDay(parse(m.filled))}`:"Add the fill date", soon:false};
   const s=rxSupply(m,key);
   if(!s) return {t:"Add the fill date and quantity", soon:false};
   if(s.left<=0) return {t:"Probably run out. Check the bottle", soon:true};
@@ -753,7 +770,7 @@ function renderRx(){
   if(sec.hidden) return;
   const keys=RX_ORDER.filter(k=>rx[k]).concat(customKeys());
   $("rxList").innerHTML=keys.map(k=>{ const m=rx[k], l=rxLeftText(m,k);
-    return `<button class="rxrow" data-rx="${k}" style="--c:var(${RX_COL[k]||"--"+m.color})"><i class="sq"></i><span class="nm"><b>${esc(m.name)} ${esc(m.strength||"")}</b><span class="left ${l.soon?"soon":""}">${esc(l.t)}</span></span><i class="chev" aria-hidden="true"></i></button>`; }).join("")
+    return `<button class="rxrow" data-rx="${k}" style="--c:var(${RX_COL[k]||"--"+m.color})"><i class="sq${isEye(m.form)?" eye":""}"></i><span class="nm"><b>${esc(m.name)} ${esc(m.strength||"")}</b><span class="left ${l.soon?"soon":""}">${esc(l.t)}</span></span><i class="chev" aria-hidden="true"></i></button>`; }).join("")
     +`<button class="addrow" id="addMed"><span class="plus" aria-hidden="true">+</span><span class="nm"><b>Add a medicine</b><span class="left">Scan the bottle label or type it in</span></span><i class="chev" aria-hidden="true"></i></button>`;
   $("addMed").onclick=()=>openAdd();
   if(rxOpen && rxOpen!=="__add" && rxOpen!=="__pet") drawRx();
@@ -804,7 +821,7 @@ function drawRx(){
     <div><div class="label">Prescription</div><div class="slist rxlist">
       ${row("Rx number", m.rx?`<span class="mono">${esc(m.rx)}</span> <button class="minibtn" id="rxCopyNo">Copy</button>`:"Not recorded")}
       ${row("Directions", esc(m.directions))}
-      ${row("Quantity", esc(m.qty?`${m.qty} ${m.form||""}s`:"Not recorded"))}
+      ${row("Quantity", esc(m.qty?qtyText(m):"Not recorded"))}
       ${row("Last filled", m.filled?esc(parse(m.filled).toLocaleDateString(undefined,{month:"short",day:"numeric",year:"numeric"})):"Not recorded")}
       ${row("Pharmacy", esc(m.pharmacy)+(m.pharmacyAddress?`<br><span class="at">${esc(m.pharmacyAddress)}</span>`:""))}
       ${row("Phone", m.pharmacyPhone?`<a href="${telHref(m.pharmacyPhone)}">${esc(m.pharmacyPhone)}</a>`:"")}
@@ -862,7 +879,7 @@ function renderNewCards(){
   const seen=seenNew(), now=Date.now();
   const list=customKeys().filter(k=>{ const a=Date.parse(rx[k].added||""); return a&&now-a<3*864e5&&!seen.includes(k+"@"+rx[k].added); });
   box.innerHTML=list.map(k=>{ const m=rx[k], c=MEDCOL[m.name]||"--teal";
-    return `<div class="newbanner" role="button" tabindex="0" data-k="${k}" style="--c:var(${c})"><i class="cap" aria-hidden="true"></i><span class="tx"><b>New: ${esc(m.name)} ${esc(m.strength||"")}</b><br><span>${esc(freqText(medSlots(m).length))[0].toUpperCase()+esc(freqText(medSlots(m).length)).slice(1)}, at ${esc(timesText(medSlots(m)))}.${m.addedBy?` Added by ${esc(m.addedBy)}.`:""}</span></span><button class="x" aria-label="Dismiss" data-x="${k}">×</button></div>`; }).join("");
+    return `<div class="newbanner" role="button" tabindex="0" data-k="${k}" style="--c:var(${c})"><i class="cap${isEye(m.form)?" eye":""}" aria-hidden="true"></i><span class="tx"><b>New: ${esc(m.name)} ${esc(m.strength||"")}</b><br><span>${esc(freqText(medSlots(m).length))[0].toUpperCase()+esc(freqText(medSlots(m).length)).slice(1)}, at ${esc(timesText(medSlots(m)))}.${m.addedBy?` Added by ${esc(m.addedBy)}.`:""}</span></span><button class="x" aria-label="Dismiss" data-x="${k}">×</button></div>`; }).join("");
   box.querySelectorAll(".newbanner").forEach(el=>{
     const open=()=>openRx(el.dataset.k);
     el.onclick=ev=>{ if(ev.target.closest(".x")) return; open(); };
@@ -876,17 +893,27 @@ const NEW_COLS=[["teal",[14,124,134],"Teal"],["magenta",[176,40,122],"Magenta"],
 const FREQ={1:["early"],2:["late","evening"],3:["early","afternoon","bedtime"]};
 function customKeys(){ return Object.keys(rx).filter(k=>rx[k]&&rx[k].custom==="yes"&&rx[k].stopped!=="yes").sort((a,b)=>String(rx[a].added||"").localeCompare(String(rx[b].added||""))); }
 function medSlots(m){ return String(m.slots||"").split(",").filter(k=>SLOTS.some(s=>s.key===k)); }
-function doseLabel(m){ const n=parseFloat(m.dose)||1; return n===1?(m.strength||""):`${n} × ${m.strength||m.form||""}`.trim(); }
+const FORMS={tablet:["tablet","tablets",.5,.5,10],capsule:["capsule","capsules",.5,.5,10],ml:["ml","ml",.5,.5,30],drops:["drop","drops",1,1,5],ointment:["inch strip","inch strip",.25,.25,1]};
+function isEye(f){ return f==="drops"||f==="ointment"; }
+function frac(n){ const w=Math.floor(n), r=Math.round((n-w)*4); return (w?String(w):"")+(["","¼","½","¾"][r]||"")||"0"; }
+function eyeWord(e){ return {left:"left eye",right:"right eye"}[e]||"both eyes"; }
+function doseText(form,n,eye){
+  const F=FORMS[form]||FORMS.tablet;
+  if(form==="ointment") return `${frac(n)}-inch strip, ${eyeWord(eye)}`;
+  if(form==="drops") return `${frac(n)} ${n>1?F[1]:F[0]}, ${eyeWord(eye)}`;
+  return `${frac(n)} ${n>1?F[1]:F[0]}`;
+}
+function doseLabel(m){ const n=parseFloat(m.dose)||1; if(isEye(m.form)) return doseText(m.form,n,m.eye); return n===1?(m.strength||""):`${n} × ${m.strength||m.form||""}`.trim(); }
 function slotMeds(s){ return s.meds.concat(customKeys().filter(k=>medSlots(rx[k]).includes(s.key)).map(k=>[rx[k].name,doseLabel(rx[k])])); }
 function petName(){ return (rx.pet&&rx.pet.name)||store.get("yukiPet","Yuki"); }
 function applyMeds(){
-  customKeys().forEach(k=>{ const m=rx[k], c=NEW_COLS.find(x=>x[0]===m.color)||NEW_COLS[0]; MEDCOL[m.name]="--"+c[0]; MEDRGB[m.name]=c[1]; });
+  customKeys().forEach(k=>{ const m=rx[k], c=NEW_COLS.find(x=>x[0]===m.color)||NEW_COLS[0]; MEDCOL[m.name]="--"+c[0]; MEDRGB[m.name]=c[1]; MEDFORM[m.name]=m.form||"tablet"; });
   const pn=petName(); store.set("yukiPet",pn);
   $("petTitle").textContent=pn; document.querySelectorAll(".petName").forEach(e=>e.textContent=pn);
   $("petSection").hidden=!(syncReady&&household);
   const all=[["Pimobendan","--pimo"],["Diltiazem","--dilt"],["Furosemide","--furo"],["Digoxin","--digo"]].concat(customKeys().map(k=>[rx[k].name,MEDCOL[rx[k].name]]));
   renderNewCards();
-  $("medKey").innerHTML='<span class="label">Meds</span>'+all.map(([n,c])=>`<span class="k" style="--c:var(${c})"><i></i>${esc(n)}</span>`).join("");
+  $("medKey").innerHTML='<span class="label">Meds</span>'+all.map(([n,c])=>`<span class="k" style="--c:var(${c})"><i class="${isEye(MEDFORM[n])?"eye":""}"></i>${esc(n)}</span>`).join("");
   render();
 }
 
@@ -911,11 +938,18 @@ function parseLabel(text){
   const out={};
   const mm=up.match(/\b([A-Z][A-Z\-]{3,}(?:\s+(?:HCL|SODIUM|POTASSIUM|ER|SR|XR))?)\s+(\d+(?:\.\d+)?)\s*(MG|MCG|ML|G)\b/);
   if(mm){ out.name=mm[1].toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()).replace(/\bHcl\b/,"HCl"); out.strength=`${mm[2]} ${mm[3].toLowerCase()}`; }
-  const dl=lines.find(l=>/\b(GIVE|TAKE|ADMINISTER)\b/i.test(l)); if(dl){ const x=dl.replace(/\s+/g," ").toLowerCase(); out.directions=x.charAt(0).toUpperCase()+x.slice(1); }
+  const dl=lines.find(l=>/\b(GIVE|TAKE|ADMINISTER|INSTILL|APPLY|PLACE)\b/i.test(l)); if(dl){ const x=dl.replace(/\s+/g," ").toLowerCase(); out.directions=x.charAt(0).toUpperCase()+x.slice(1); }
   const d=(dl||up).toUpperCase();
   const dn=d.match(/\b(\d+(?:\.\d+)?|ONE|TWO|THREE|HALF|1\/2|½)\s+(TABLET|TAB|CAPSULE|CAP|ML)S?\b/);
   if(dn){ out.dose=WORDN[dn[1].toLowerCase()]||parseFloat(dn[1])||1; out.form=/CAP/.test(dn[2])?"capsule":/ML/.test(dn[2])?"ml":"tablet"; }
   else { const f=up.match(/\b(TABLET|CAPSULE)S?\b/); if(f) out.form=f[1].toLowerCase(); }
+  // Eye medicines: ointment strips and drops, and which eye
+  const eyeish=/OPHTHALMIC|OPHTH|\bEYES?\b|\bOU\b|\bOS\b|\bOD\b/.test(up);
+  if(eyeish&&/OINTMENT|\bOINT\b|\bSTRIP\b/.test(up)){ out.form="ointment"; const st=up.match(/(1\/4|1\/2|¼|½|QUARTER|HALF)[\s-]*(?:INCH|IN\b|")/); out.dose=st?(/1\/2|½|HALF/.test(st[1])?.5:.25):.25; }
+  else if(eyeish&&/DROPS?\b|SOLUTION|SUSPENSION|\bGTTS?\b/.test(up)){ out.form="drops"; const dr=up.match(/\b(\d|ONE|TWO|THREE)\s+(?:DROPS?|GTTS?)\b/); out.dose=dr?(WORDN[dr[1].toLowerCase()]||parseInt(dr[1])):1; }
+  if(out.form==="ointment"||out.form==="drops"){ out.eye=/LEFT EYE|\bOS\b/.test(up)?"left":/RIGHT EYE|\bOD\b/.test(up)?"right":"both";
+    if(!out.strength){ const pc=up.match(/(\d+(?:\.\d+)?)\s*%/); if(pc) out.strength=`${pc[1]}%`; }
+    if(!out.name){ const nm=up.match(/\b([A-Z][A-Z\-]{3,})\s+(?:\(?[A-Z\-]+\)?\s+)?(?:OPHTHALMIC|OPHTH|EYE)/); if(nm) out.name=nm[1].toLowerCase().replace(/\b\w/g,c=>c.toUpperCase()); } }
   if(/\b(THREE TIMES|3 TIMES|EVERY 8 HOURS|Q8H|TID)\b/.test(d)) out.freq=3;
   else if(/\b(TWICE|2 TIMES|EVERY 12 HOURS|Q12H|BID)\b/.test(d)) out.freq=2;
   else if(/\b(ONCE|DAILY|EVERY 24 HOURS|EVERY DAY|SID)\b/.test(d)) out.freq=1;
@@ -930,7 +964,7 @@ let add=null;
 function openAdd(editKey){
   rxOpen="__add"; rxEditing=false;
   const used=Object.values(rx).filter(m=>m&&m.custom==="yes"&&m.stopped!=="yes").map(m=>m.color);
-  if(editKey){ const m=rx[editKey]; add={edit:editKey,step:"form",name:m.name,strength:m.strength||"",form:m.form||"tablet",dose:parseFloat(m.dose)||1,slots:medSlots(m),color:m.color,rx:m.rx||"",qty:m.qty||"",refills:m.refills||"",pharmacy:m.pharmacy||"",pharmacyPhone:m.pharmacyPhone||"",directions:m.directions||"",fromLabel:{}}; }
+  if(editKey){ const m=rx[editKey]; add={edit:editKey,step:"form",name:m.name,strength:m.strength||"",form:m.form||"tablet",eye:m.eye||"both",dose:parseFloat(m.dose)||1,slots:medSlots(m),color:m.color,rx:m.rx||"",qty:m.qty||"",refills:m.refills||"",pharmacy:m.pharmacy||"",pharmacyPhone:m.pharmacyPhone||"",directions:m.directions||"",fromLabel:{}}; }
   else { const free=NEW_COLS.find(c=>!used.includes(c[0])); add={by:store.get("yukiLastGiver",PEOPLE[0]),tell:true,step:"scan",name:"",strength:"",form:"tablet",dose:1,slots:FREQ[2].slice(),color:(free||NEW_COLS[used.length%NEW_COLS.length])[0],rx:"",qty:"",refills:"",pharmacy:"",pharmacyPhone:"",directions:"",fromLabel:{}}; }
   drawAdd(); $("rxScrim").hidden=false; const sh=$("rxScrim").querySelector(".sheet"); if(sh) sh.scrollTop=0;
 }
@@ -960,14 +994,15 @@ function drawAdd(){
   const used=Object.entries(rx).filter(([k,m])=>m&&m.custom==="yes"&&m.stopped!=="yes"&&k!==add.edit).map(([,m])=>m.color);
   $("rxTitle").textContent=add.edit?`${add.name}`:"New medicine";
   $("rxBody").innerHTML=`<form class="addf" id="addForm" novalidate>
-    <div class="nm2" style="--c:var(--${c[0]})"><i class="big" aria-hidden="true"></i><div><b id="addHead">${esc(add.name||"New medicine")} ${esc(add.strength)}</b><small>${add.edit?"Change the dose or the times it's given.":add.fromLabel.name?"Read from the label. Check each line and fix anything it got wrong.":"Type the details from the bottle."}</small></div></div>
+    <div class="nm2" style="--c:var(--${c[0]})"><i class="big${isEye(add.form)?" eye":""}" aria-hidden="true"></i><div><b id="addHead">${esc(add.name||"New medicine")} ${esc(add.strength)}</b><small>${add.edit?"Change the dose or the times it's given.":add.fromLabel.name?"Read from the label. Check each line and fix anything it got wrong.":"Type the details from the bottle."}</small></div></div>
     <div class="grid2">
       <label><span>Name ${tag("name")}</span><input id="aName" value="${esc(add.name)}" autocomplete="off" required></label>
       <label><span>Strength ${tag("strength")}</span><input id="aStr" value="${esc(add.strength)}" placeholder="5 mg" autocomplete="off"></label>
     </div>
     <div><div class="label">Dose ${tag("dose")}</div><div class="slist">
       <div class="fr"><span>Each dose</span><span class="step"><button type="button" id="aMinus" aria-label="Less">−</button><b id="aDose">${fmtDose()}</b><button type="button" id="aPlus" aria-label="More">+</button></span></div>
-      <div class="fr"><span>Form</span><select id="aForm" style="width:auto;min-height:36px;background:var(--bg)"><option value="tablet">Tablet</option><option value="capsule">Capsule</option><option value="ml">Liquid (ml)</option></select></div>
+      <div class="fr"><span>Form</span><select id="aForm" style="width:auto;min-height:36px;background:var(--bg)"><option value="tablet">Tablet</option><option value="capsule">Capsule</option><option value="ml">Liquid (ml)</option><option value="drops">Eye drops</option><option value="ointment">Eye ointment</option></select></div>
+      ${isEye(add.form)?`<div class="fr"><span>Which eye</span><span class="seg" role="radiogroup" aria-label="Which eye" style="margin:0;min-width:190px">${[["both","Both"],["left","Left"],["right","Right"]].map(([v,t])=>`<button type="button" role="radio" data-eye="${v}" aria-checked="${(add.eye||"both")===v}">${t}</button>`).join("")}</span></div>`:""}
     </div></div>
     <div><div class="label">How often ${tag("freq")}</div>
       <div class="seg" role="radiogroup" aria-label="How often">${[1,2,3].map(f=>`<button type="button" role="radio" data-f="${f}" aria-checked="${freq===f}">${f===1?"Once a day":f===2?"Twice a day":"3 times"}</button>`).join("")}</div>
@@ -999,17 +1034,19 @@ function drawAdd(){
   if($("aBy")) $("aBy").onchange=()=>{ add.by=$("aBy").value; };
   const head=()=>{ sync(); purp(); $("addHead").textContent=`${add.name||"New medicine"} ${add.strength}`; $("aSave").textContent=add.edit?"Save changes":`Add ${add.name||"it"} to the schedule`; };
   ["aName","aStr"].forEach(id=>$(id).addEventListener("input",head)); head();
-  $("aForm").onchange=()=>{ sync(); $("aDose").textContent=fmtDose(); };
-  $("aMinus").onclick=()=>{ add.dose=Math.max(.5,add.dose-.5); $("aDose").textContent=fmtDose(); };
-  $("aPlus").onclick=()=>{ add.dose=Math.min(10,add.dose+.5); $("aDose").textContent=fmtDose(); };
-  document.querySelectorAll("#addForm .seg button").forEach(b=>b.onclick=()=>{ sync(); add.slots=FREQ[b.dataset.f].slice(); drawAdd(); });
+  $("aForm").onchange=()=>{ const was=add.form; sync(); if(add.form!==was){ const F=FORMS[add.form]; if(isEye(add.form)||isEye(was)) add.dose=F[3]; add.dose=Math.min(F[4],Math.max(F[3],add.dose)); if(isEye(add.form)&&!add.eye) add.eye="both"; } drawAdd(); };
+  $("aMinus").onclick=()=>{ const F=FORMS[add.form]||FORMS.tablet; add.dose=Math.max(F[3],+(add.dose-F[2]).toFixed(2)); $("aDose").textContent=fmtDose(); };
+  $("aPlus").onclick=()=>{ const F=FORMS[add.form]||FORMS.tablet; add.dose=Math.min(F[4],+(add.dose+F[2]).toFixed(2)); $("aDose").textContent=fmtDose(); };
+  document.querySelectorAll("#addForm [data-eye]").forEach(b=>b.onclick=()=>{ sync(); add.eye=b.dataset.eye; drawAdd(); });
+  document.querySelectorAll("#addForm .seg button[data-f]").forEach(b=>b.onclick=()=>{ sync(); add.slots=FREQ[b.dataset.f].slice(); drawAdd(); });
   document.querySelectorAll("#addForm .slots button").forEach(b=>b.onclick=()=>{ sync(); const k=b.dataset.k; add.slots=add.slots.includes(k)?add.slots.filter(x=>x!==k):SLOTS.map(s=>s.key).filter(x=>x===k||add.slots.includes(x)); drawAdd(); });
   document.querySelectorAll("#addForm .sw button").forEach(b=>b.onclick=()=>{ sync(); add.color=b.dataset.c; drawAdd(); });
   if($("aRescan")) $("aRescan").onclick=()=>{ add.step="scan"; add.preview=null; drawAdd(); };
   $("addForm").addEventListener("submit",ev=>{ ev.preventDefault(); sync(); saveAdd(); });
 }
-function fmtDoseOf(m){ const n=parseFloat(m.dose)||1, u=m.form==="ml"?"ml":(m.form||"tablet"); return `${n===.5?"½":String(n).replace(".5","½")} ${u}${n>1&&u!=="ml"?"s":""}${m.strength?", "+m.strength:""}`; }
-function fmtDose(){ const u=add.form==="ml"?"ml":add.form; const n=add.dose; return `${n===.5?"½":String(n).replace(".5","½")} ${u}${n>1&&u!=="ml"?"s":""}`; }
+function fmtDoseOf(m){ return doseText(m.form||"tablet",parseFloat(m.dose)||1,m.eye)+(m.strength&&!isEye(m.form)?", "+m.strength:""); }
+function qtyText(m){ const n=parseFloat(m.qty), u={ointment:["tube","tubes"],drops:["bottle","bottles"],ml:["ml","ml"],capsule:["capsule","capsules"],tablet:["tablet","tablets"]}[m.form]; if(!u) return `${m.qty} ${m.form||""}s`.trim(); return `${m.qty} ${n===1?u[0]:u[1]}`; }
+function fmtDose(){ return doseText(add.form,add.dose,add.eye).split(",")[0]; }
 async function readLabel(file){
   add.step="reading"; add.preview=URL.createObjectURL(file); drawAdd();
   try{
@@ -1029,8 +1066,10 @@ async function saveAdd(){
   const key=add.edit||add.name.toLowerCase().replace(/[^a-z]/g,"").slice(0,20);
   if(key.length<3){ toast("Use a longer name"); return; }
   if(!add.edit&&(RX_ORDER.includes(key)||(rx[key]&&rx[key].custom==="yes"&&rx[key].stopped!=="yes"))){ toast(`${add.name} is already on the list`); return; }
-  const doc={name:add.name,strength:add.strength,form:add.form,dose:String(add.dose),slots:add.slots.join(","),color:add.color,custom:"yes",stopped:"",
+  const doc={name:add.name,strength:add.strength,form:add.form,dose:String(add.dose),slots:add.slots.join(","),color:add.color,custom:"yes",
     rx:add.rx,qty:add.qty,refills:add.refills,pharmacy:add.pharmacy,pharmacyPhone:add.pharmacyPhone,directions:add.directions};
+  if(isEye(add.form)) doc.eye=add.eye||"both";
+  if(add.edit&&rx[add.edit]&&rx[add.edit].stopped==="yes") doc.stopped="";
   if(!add.edit){ doc.filled=ymd(doseDay()); doc.added=new Date().toISOString(); doc.addedBy=add.by||store.get("yukiLastGiver",PEOPLE[0]);
     const pu=purposeFor(add.name); if(pu) doc.purpose=pu.t; if(add.tell===false) doc.tell="no"; }
   const msg=add.edit?`${add.name} updated`:`${add.name} added to ${petName()}'s schedule`;

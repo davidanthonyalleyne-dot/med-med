@@ -167,7 +167,24 @@ def main():
         pet = str(meds["pet"]["name"])[:24]
     added = {k: m for k, m in meds.items() if m.get("custom") == "yes" and m.get("stopped") != "yes"}
 
+    def frac(n):
+        w, r = int(n), round((n - int(n)) * 4)
+        return ((str(w) if w else "") + ["", "\u00bc", "\u00bd", "\u00be"][r]) or "0"
+
+    def each_text(m):
+        # Same wording as the app: "1 tablet", "2 ml", "1 drop, both eyes", "1/4-inch strip, left eye"
+        n, form = float(m.get("dose") or 1), m.get("form") or "tablet"
+        eye = {"left": "left eye", "right": "right eye"}.get(m.get("eye"), "both eyes")
+        if form == "ointment":
+            return f"{frac(n)}-inch strip, {eye}"
+        if form == "drops":
+            return f"{frac(n)} drop{'s' if n > 1 else ''}, {eye}"
+        unit = {"ml": ("ml", "ml"), "capsule": ("capsule", "capsules")}.get(form, ("tablet", "tablets"))
+        return f"{frac(n)} {unit[1] if n > 1 else unit[0]}"
+
     def dose_text(m):
+        if m.get("form") in ("drops", "ointment"):
+            return each_text(m)
         n = float(m.get("dose") or 1)
         return m.get("strength", "") if n == 1 else f"{n:g} x {m.get('strength') or m.get('form', '')}"
 
@@ -211,10 +228,7 @@ def main():
         times = [next(s[2] for s in SLOTS if s[0] == k).replace(":00", "") for k in keys]
         when = times[0] if len(times) == 1 else ", ".join(times[:-1]) + " and " + times[-1]
         freq = {1: "once a day", 2: "twice a day", 3: "three times a day"}.get(len(keys), f"{len(keys)} times a day")
-        n = float(m.get("dose") or 1)
-        unit = "ml" if m.get("form") == "ml" else (m.get("form") or "tablet")
-        each = f"{n:g} {unit}{'s' if n > 1 and unit != 'ml' else ''}"
-        body = f"{each} {freq}, at {when}."
+        body = f"{each_text(m)}, {freq}, at {when}."
         if m.get("purpose"):
             body += f" {m['purpose']}"
         if m.get("addedBy"):
