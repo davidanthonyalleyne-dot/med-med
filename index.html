@@ -347,6 +347,14 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 
 #sMeds .sl{gap:12px}
 #sMeds .num{text-align:right}
+
+/* Vet */
+.vetname{display:flex;flex-direction:column;gap:2px;padding:10px 0}
+.vetname b{font-weight:600}
+.vetaddr{font-size:14px;color:var(--muted);text-decoration:none}
+.vetaddr:focus-visible{outline:2px solid var(--text);border-radius:4px}
+#vetSection a.go{text-decoration:none}
+#vetSection .at{font-size:14px;color:var(--muted);padding:10px 0;line-height:1.35}
 </style>
 </head>
 <body>
@@ -421,6 +429,14 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
       <div class="list" id="family"></div>
       <p class="sub" id="familyNote"></p>
     </div>
+    <div class="section" id="vetSection">
+      <div class="label">Vet</div>
+      <div class="list">
+        <div class="lrow"><span class="vetname"><b>Queen West Animal Hospital</b><a class="vetaddr" href="https://maps.apple.com/?q=Queen%20West%20Animal%20Hospital&amp;address=931%20Queen%20St%20W,%20Toronto,%20ON%20M6J%201G5" target="_blank" rel="noopener">931 Queen St W, Toronto</a></span></div>
+        <div class="lrow"><span class="mono">416-815-8387</span><a class="go" href="tel:+14168158387">Call</a></div>
+        <div class="lrow"><span class="at">Mon to Fri 8:30 AM to 6 PM · Sat 9 AM to 3 PM · Sun closed</span></div>
+      </div>
+    </div>
     <div class="section" id="rxSection" hidden>
       <div class="label">Prescriptions</div>
       <div class="list" id="rxList"></div>
@@ -476,7 +492,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const APP_VERSION = "2026.11.17";
+const APP_VERSION = "2026.11.18";
 const SLOTS = [
   {key:"early",     name:"Early",        short:"8a",  time:"8:00 AM",  h:8,  meds:[["Pimobendan","7.5 mg"],["Diltiazem","60 mg"]]},
   {key:"late",      name:"Late Morning", short:"10a", time:"10:00 AM", h:10, meds:[["Furosemide","40 mg"],["Digoxin","0.0625 mg"]]},
