@@ -6,7 +6,11 @@ push notification to every phone that turned alerts on in Med Med.
 
 Secrets (set in the repo's Settings > Secrets and variables > Actions):
   HOUSEHOLD_CODE     the family's household code from Med Med's Print tab
-  VAPID_PRIVATE_KEY  the private half of the push key pair
+  VAPID_PRIVATE_KEY  the private half of the push key pair (web app alerts)
+  APNS_KEY_P8        an Apple push key (.p8 contents) for the native iPhone app's alerts
+  APNS_KEY_ID        that key's 10-character Key ID
+The native app signs up in the same subs collection, with an endpoint of
+https://api.push.apple.com/3/device/<token>, so no rules change was needed.
 The Firebase web keys are public and are read from firebase-config.js.
 """
 import datetime as dt
@@ -20,6 +24,45 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from pywebpush import WebPushException, webpush
+
+APNS_HOST = "https://api.push.apple.com/3/device/"
+APNS_TOPIC = "ca.davidalleyne.medmed"
+APNS_TEAM = "M8GX2N7YR2"
+
+
+class Apns:
+    """Sends to the native iPhone app through Apple's push service (HTTP/2, token auth)."""
+
+    def __init__(self, key, key_id):
+        self.key, self.key_id, self._jwt, self._client = key, key_id, None, None
+
+    def token(self):
+        if not self._jwt:
+            import time
+            import jwt
+            self._jwt = jwt.encode({"iss": APNS_TEAM, "iat": int(time.time())}, self.key,
+                                   algorithm="ES256", headers={"kid": self.key_id})
+        return self._jwt
+
+    def send(self, endpoint, payload, collapse):
+        import httpx
+        if not self._client:
+            self._client = httpx.Client(http2=True, timeout=20)
+        r = self._client.post(endpoint, content=json.dumps(payload).encode(), headers={
+            "authorization": f"bearer {self.token()}", "apns-topic": APNS_TOPIC,
+            "apns-push-type": "alert", "apns-priority": "10", "apns-expiration": str(int(__import__("time").time()) + 3 * 3600),
+            "apns-collapse-id": collapse[:64]})
+        return r.status_code, r.text
+
+
+def apns_payload(p):
+    """The web payload as an Apple notification. Dose alerts get the Given button (category DOSE)."""
+    aps = {"alert": {"title": p["title"], "body": p["body"]}, "sound": "default", "thread-id": "medmed"}
+    out = {"aps": aps, "tag": p["tag"]}
+    if p.get("date") and p.get("slot"):
+        aps["category"] = "DOSE"
+        out["date"], out["slot"] = p["date"], p["slot"]
+    return out
 
 TZ = ZoneInfo("America/Toronto")
 ROOT = Path(__file__).resolve().parent.parent
@@ -144,6 +187,8 @@ def due_doses(now):
 def main():
     household = os.environ.get("HOUSEHOLD_CODE", "").strip().upper()
     private_key = os.environ.get("VAPID_PRIVATE_KEY", "").strip()
+    apns_key = os.environ.get("APNS_KEY_P8", "").strip()
+    apns = Apns(apns_key, os.environ.get("APNS_KEY_ID", "").strip()) if apns_key and os.environ.get("APNS_KEY_ID") else None
     dry_run = os.environ.get("DRY_RUN") == "1"
     if not re.fullmatch(r"[A-Z0-9]{4}(-[A-Z0-9]{4}){3}", household):
         raise SystemExit("HOUSEHOLD_CODE secret is missing or not in the ABCD-EFGH-JKLM-NPQR form")
@@ -206,6 +251,8 @@ def main():
             "body": f"Due at {time_label}: {meds_text}. Tap to log it if it's been given.",
             "tag": f"{date}_{key}",
             "url": "./#today",
+            "date": date,
+            "slot": key,
         })))
 
     # 2. Newly added medicines, announced once (unless the person adding it turned that off)
@@ -258,6 +305,23 @@ def main():
             continue
         sent = 0
         for sub in subs:
+            if str(sub.get("endpoint", "")).startswith(APNS_HOST):
+                if not apns:
+                    log("An iPhone has native alerts on, but APNS_KEY_P8 / APNS_KEY_ID aren't set yet")
+                    continue
+                try:
+                    code, text = apns.send(sub["endpoint"], apns_payload(json.loads(payload)), marker)
+                except Exception as e:  # network trouble: try the others
+                    log(f"Apple push failed: {e}")
+                    continue
+                if code == 200:
+                    sent += 1
+                elif code == 410 or (code == 400 and "BadDeviceToken" in text):
+                    store.delete(sub["_name"].split(f"/households/{household}/", 1)[1])
+                    log("Removed an iPhone that turned alerts off")
+                else:
+                    log(f"Apple push failed ({code}): {text}")
+                continue
             try:
                 webpush(
                     subscription_info={"endpoint": sub["endpoint"], "keys": sub["keys"]},
@@ -275,7 +339,7 @@ def main():
                 else:
                     log(f"Push failed ({code}): {e}")
         log(f"{label}: alerted {sent} phone(s)")
-        if subs and not sent:
+        if any(not str(x.get("endpoint", "")).startswith(APNS_HOST) or apns for x in subs) and not sent:
             failed.append(label)
     if failed:
         # Fail the run so GitHub emails the repo owner instead of failing silently.

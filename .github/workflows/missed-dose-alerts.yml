@@ -38,4 +38,6 @@ jobs:
         env:
           HOUSEHOLD_CODE: ${{ secrets.HOUSEHOLD_CODE }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
+          APNS_KEY_P8: ${{ secrets.APNS_KEY_P8 }}
+          APNS_KEY_ID: ${{ secrets.APNS_KEY_ID }}
         run: python scripts/check_missed.py
