@@ -110,6 +110,22 @@ h1{margin:0;font-size:34px;line-height:1.1;font-weight:700;letter-spacing:-.5px}
 .btnwide.dark{background:var(--act);color:var(--act-ink)}
 .btnwide[disabled]{opacity:.4;cursor:default}
 .btnwide:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+/* Slide to log: the dose only logs once the paw reaches the end */
+.slide{position:relative;height:56px;border-radius:28px;background:var(--act);overflow:hidden;user-select:none;-webkit-user-select:none;touch-action:none}
+.slide .sfill{position:absolute;left:0;top:0;bottom:0;width:0;border-radius:28px;background:var(--ok)}
+.slide .slbl{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:8px;padding-left:44px;color:var(--act-ink);font-size:17px;font-weight:600;letter-spacing:-.2px;pointer-events:none}
+.slide .chev{opacity:.45;letter-spacing:-3px}
+.slide .knob{all:unset;box-sizing:border-box;position:absolute;left:4px;top:4px;width:48px;height:48px;border-radius:24px;background:var(--act-ink);display:flex;align-items:center;justify-content:center;cursor:grab;touch-action:none}
+.slide .knob:focus-visible{outline:2px solid var(--ok);outline-offset:2px}
+.slide .knob svg{width:22px;height:22px}
+.slide .paw{fill:var(--act)}
+.slide .tick{fill:none;stroke:var(--ok);stroke-width:3;stroke-linecap:round;stroke-linejoin:round;display:none}
+.slide.done .paw{display:none}.slide.done .tick{display:inline}
+.slide.done .slbl{padding-left:0;padding-right:44px;color:#fff}
+.slide.spring .knob{transition:left .38s cubic-bezier(.34,1.56,.64,1)}
+.slide.spring .sfill{transition:width .38s cubic-bezier(.34,1.56,.64,1)}
+.slide.spring .slbl{transition:opacity .2s}
+@media (prefers-reduced-motion: reduce){.slide.spring .knob,.slide.spring .sfill{transition:none}}
 .list{background:var(--well);border-radius:12px;overflow:hidden;margin-top:6px}
 .lrow{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:0 16px;min-height:52px}
 .lrow + .lrow{border-top:.5px solid var(--rule)}
@@ -308,7 +324,7 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
   :root:not([data-rotate="off"]) #scrim .grab,:root:not([data-rotate="off"]) #scrim .shead{grid-column:1 / -1}
   :root:not([data-rotate="off"]) #scrim .sheet>div:nth-of-type(3){grid-column:1;grid-row:3}
   :root:not([data-rotate="off"]) #scrim .sheet>div:nth-of-type(4){grid-column:2;grid-row:3 / span 3}
-  :root:not([data-rotate="off"]) #scrim #sLog{grid-column:1;grid-row:4;align-self:start}
+  :root:not([data-rotate="off"]) #scrim #sLog,:root:not([data-rotate="off"]) #scrim #sSlide{grid-column:1;grid-row:4;align-self:start}
   :root:not([data-rotate="off"]) #scrim #sClear{grid-column:1;grid-row:5}
   :root:not([data-rotate="off"]) #sWho .pick{min-height:40px}
   :root:not([data-rotate="off"]) .codeval{white-space:nowrap;font-size:15px}
@@ -486,13 +502,14 @@ body[data-tab="today"] #v-today, body[data-tab="month"] #v-month, body[data-tab=
     <div><div class="label">Give together</div><div class="slist" id="sMeds"></div></div>
     <div><div class="label" id="sWhoLabel">Given by</div><div class="slist" id="sWho" role="radiogroup" aria-labelledby="sWhoLabel"></div></div>
     <button class="btnwide dark" id="sLog">Log dose</button>
+    <div class="slide" id="sSlide" hidden><div class="sfill"></div><span class="slbl" aria-hidden="true"><span class="stxt"></span><span class="chev">›››</span></span><button class="knob" id="sKnob" type="button"><svg viewBox="0 0 24 24" aria-hidden="true"><g class="paw"><ellipse cx="12" cy="16" rx="5" ry="4"/><circle cx="6" cy="10.5" r="2.2"/><circle cx="18" cy="10.5" r="2.2"/><circle cx="9.3" cy="6.5" r="2.2"/><circle cx="14.7" cy="6.5" r="2.2"/></g><path class="tick" d="M5 12.5l4.5 4.5L19 7.5"/></svg></button></div>
     <button class="clear" id="sClear" hidden>Clear this dose</button>
   </div>
 </div>
 <div class="toast" id="toast" hidden></div>
 
 <script>
-const APP_VERSION = "2026.11.18";
+const APP_VERSION = "2026.11.25";
 const SLOTS = [
   {key:"early",     name:"Early",        short:"8a",  time:"8:00 AM",  h:8,  meds:[["Pimobendan","7.5 mg"],["Diltiazem","60 mg"]]},
   {key:"late",      name:"Late Morning", short:"10a", time:"10:00 AM", h:10, meds:[["Furosemide","40 mg"],["Digoxin","0.0625 mg"]]},
@@ -624,20 +641,49 @@ function drawPicks(){
   $("sWho").innerHTML=PEOPLE.map(p=>`<button class="pick" role="radio" aria-checked="${sheet.pick===p}" data-p="${p}">${p}${sheet.pick===p?CHECK:""}</button>`).join("");
   $("sLog").disabled=!sheet.pick;
   $("sLog").textContent = e ? (sheet.pick===e.by ? "Done" : `Change to ${sheet.pick}`) : (sheet.pick ? `Log dose for ${sheet.pick}` : "Choose who gave it");
+  const slide=!e && !!sheet.pick;
+  $("sLog").hidden=slide; $("sSlide").hidden=!slide;
+  if(slide){ slideReset(); $("sSlide").querySelector(".stxt").textContent=`Slide to log for ${sheet.pick}`; $("sKnob").setAttribute("aria-label",`Log dose for ${sheet.pick}`); }
 }
 function closeSheet(){ $("scrim").hidden=true; sheet=null; }
 $("sWho").addEventListener("click", ev=>{ const b=ev.target.closest(".pick"); if(!b) return; sheet.pick=b.dataset.p; drawPicks(); $("sWho").querySelector(`[data-p="${b.dataset.p}"]`).focus(); });
 $("sCancel").onclick=closeSheet;
 $("scrim").addEventListener("click", ev=>{ if(ev.target===$("scrim")) closeSheet(); });
 document.addEventListener("keydown", ev=>{ if(ev.key==="Escape" && sheet) closeSheet(); });
-$("sLog").onclick=()=>{
+function logDose(){
   const e=entry(selDate,sheet.key);
   if(e && e.by===sheet.pick){ closeSheet(); return; }
   if(!e) playLogSound(selDate, sheet.key);
   save(sheet.key, e ? {at:e.at, by:sheet.pick} : {at:new Date().toISOString(), by:sheet.pick});
   store.set("yukiLastGiver", sheet.pick);
   closeSheet();
+}
+$("sLog").onclick=logDose;
+/* Slide to log. Dragging the paw to the end logs the dose; letting go early springs it back.
+   A tap on the paw nudges it to show it slides; Enter or Space on the focused paw logs straight away. */
+let slideX=0, slideDrag=null, slideBusy=false;
+const slideMax=()=>$("sSlide").clientWidth-56;
+function slideSet(x){ slideX=x; const sl=$("sSlide"); $("sKnob").style.left=(4+x)+"px"; sl.querySelector(".sfill").style.width=(x>0?52+x:0)+"px"; sl.querySelector(".slbl").style.opacity=sl.classList.contains("done")?1:Math.max(0,1-1.6*x/Math.max(1,slideMax())); }
+function slideReset(){ const sl=$("sSlide"); slideBusy=false; sl.classList.remove("done","spring"); slideSet(0); }
+function slideFinish(){
+  if(slideBusy||!sheet) return; slideBusy=true;
+  const sl=$("sSlide"), who=sheet.pick;
+  sl.classList.add("spring","done"); slideSet(slideMax());
+  sl.querySelector(".stxt").textContent=`Logged for ${who}`; sl.querySelector(".chev").textContent="";
+  try{ navigator.vibrate&&navigator.vibrate(12); }catch(_){}
+  setTimeout(()=>{ if(sheet) logDose(); sl.querySelector(".chev").textContent="›››"; },480);
+}
+$("sKnob").addEventListener("pointerdown", ev=>{ if(slideBusy) return; slideDrag={x0:ev.clientX-slideX, moved:false}; $("sSlide").classList.remove("spring"); $("sKnob").setPointerCapture(ev.pointerId); ev.preventDefault(); });
+$("sKnob").addEventListener("pointermove", ev=>{ if(!slideDrag) return; const x=Math.max(0,Math.min(slideMax(),ev.clientX-slideDrag.x0)); if(Math.abs(x-slideX)>2) slideDrag.moved=true; slideSet(x); });
+const slideUp=()=>{
+  if(!slideDrag) return; const d=slideDrag; slideDrag=null;
+  if(slideX>=slideMax()*0.86){ slideFinish(); return; }
+  $("sSlide").classList.add("spring");
+  if(!d.moved){ slideSet(28); setTimeout(()=>{ if(!slideBusy) slideSet(0); },220); } else slideSet(0);
 };
+$("sKnob").addEventListener("pointerup", slideUp);
+$("sKnob").addEventListener("pointercancel", slideUp);
+$("sKnob").addEventListener("click", ev=>{ if(ev.detail===0) slideFinish(); });
 /* ---------- Sounds (made in the browser, no audio files) ---------- */
 let actx=null;
 function soundsOn(){ return store.get("yukiSounds", true)!==false; }
